@@ -17,8 +17,11 @@ from src.delaunay.Point import Point
 from src.delaunay.Triangle import Triangle
 from collections import deque
 
-# testy
-from src.testy.Tests import Testy
+# testy podstawowe
+# from src.testy.Tests import Testy
+
+# testy rozszerzone
+from src.testy.TestsExtended import Testy
 
 # dodatkowe importy - na potrzeby testow dzialania
 from copy import deepcopy
@@ -504,11 +507,21 @@ def delunay(polygon: list):
     return createListEdges(createSetEdges(triangleSol))
 
 if __name__ == '__main__':
-    for polygon in Testy:
-        vis = Visualizer()
-        solEdges = delunay(polygon)
-        vis.add_polygon(polygon)
-        vis.add_line_segment(solEdges, color = "black")
-        vis.show()
 
+    # dla wersji podstawowej testow
+    # for polygon in Testy:
+    #     vis = Visualizer()
+    #     solEdges = delunay(polygon)
+    #     vis.add_polygon(polygon)
+    #     vis.add_line_segment(solEdges, color = "black")
+    #     vis.show()
+
+    # dla wersji rozszrzeonej testow
+    for test in Testy:
+        for polygon in test:
+            vis = Visualizer()
+            solEdges = delunay(polygon)
+            vis.add_polygon(polygon)
+            vis.add_line_segment(solEdges, color = "black")
+            vis.show()
 
