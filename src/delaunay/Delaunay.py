@@ -1264,6 +1264,9 @@ def delunay(polygon: list):
 
 
     triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
+    cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
+
+    triangleToDetector = convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
