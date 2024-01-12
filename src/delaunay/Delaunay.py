@@ -549,6 +549,43 @@ def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[
 
     return cuttersMap
 
+
+def whetherTwoEdgesCut(edge1: tuple[Point, Point], edge2: tuple[Point, Point]):
+    """
+    Funkcja sprawdza czy dwa odcinki sie przecinanaj czy tez, nie.
+    :param edge1: Odcinek pierwszy
+    :param edge2: Odcinek drugi
+    :return: True jesli odcinki sie przeciaja, False jesli sie nie przecianaja
+    """
+    function1 = LineFunction(edge1[0], edge1[1])
+    function2 = LineFunction(edge2[0], edge2[1])
+
+    intersectBetweenTwoFunc = function1.findIntersection(function2)
+
+    if intersectBetweenTwoFunc is not None:
+        # przypadek, kiedy jeden z odcinkow jest pionowy, to zawsze drugi nie moze byc pionowy, ponieaz przeciecie istenieje
+        if function1.vertical and function2.maxX > intersectBetweenTwoFunc > function2.minX:
+            return True
+        if function2.vertical and function1.maxX > intersectBetweenTwoFunc > function1.minX:
+            return True
+    return False
+
+
+def whetherCutAnyEdge(edgesSet: set[tuple[Point,Point]], edge: tuple[Point,Point]):
+    """
+    Funkcja sprawdza czy dany odcinek przecina jakas krawedz ze zbioru wszystkich krawedzi, danego wielokata
+    :param edgesSet: Zbior krawedzi orginalnego wielokata
+    :param edge: Krawedz
+    :return: True jesli krawedz przecina krawedz z wielokata, False jesli nie przecina
+    """
+
+    for edgePoly in edgesSet:
+        if whetherTwoEdgesCut(edgePoly, edge):  # dla kazdej krawedz sprawdzam czy nie jest przecinana
+            return True
+
+    return False
+
+
 def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], triangleToDetector: set[Triangle]):
     """
     Funkcja zamienia przekatne danych trojkatow, ktore przecinaja krawedzie
@@ -563,11 +600,18 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], tria
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.firstNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
+
+                        newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
+
+                        # todo napisac funkcje ktora sprawdza czy, oba odcinki sie przecianaja
+
                         triangleFirst = Triangle(trianglePointFirst[0], trianglePointFirst[1], trianglePointFirst[2])
                         triangleSecond = Triangle(trianglePointSecond[0], trianglePointSecond[1], trianglePointSecond[2])
 
                         triangleFirst.firstNeigh = triangleSecond
                         triangleSecond.firstNeigh = triangleFirst
+
+
 
                         # todo najpiew sprawdzic czy ta przekatna nowo utworzona nie przecina innego odcinka !!!
                         # todo a dopiero pozniej zmienic usunac dany trojkat i zmienic jego sasiadow !!!
@@ -630,6 +674,10 @@ if __name__ == '__main__':
     #         vis.add_line_segment(solEdges, color = "black")
     #         vis.show()
 
-    triangle = Triangle(Point(4, 1),Point(4, 4),Point(7, 1))
-    edge = (Point(6, 5),Point(6, 0))
+    # triangle = Triangle(Point(4, 1),Point(4, 4),Point(7, 1))
+    # edge = (Point(6, 5),Point(6, 0))
     #print(isCut(triangle, edge))
+
+    edge1 = (Point(1,1), Point(1,3))
+    edge2 = (Point(1/2,2), Point(2,2))
+    print(whetherTwoEdgesCut(edge1,edge2))
