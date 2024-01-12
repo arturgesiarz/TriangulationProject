@@ -488,7 +488,7 @@ def isCut(triangle: Triangle, edge: tuple[Point,Point]):
     """
     Funkcja odpowiada na pytania czy dany trojkat, przecina dana krawedz.
     Funkcja ta bedzie pomocna przy procedurze odzyskiwania krawedzi
-    :return:
+    :return: True/False w zaleznosci czy dany punkt przecina dana krawedz
     """
     edgeLine = LineFunction(edge[0], edge[1])  # tworze funkcje liniowa
 
@@ -511,6 +511,22 @@ def isCut(triangle: Triangle, edge: tuple[Point,Point]):
         return True
 
     return False
+
+def createEdges(pointTab: list[Point]):
+    """
+    Funkcja dla poczatkowego zbioru punktow, tworzy poczatkowy zbior krawedzi.
+    :param pointTab:
+    :return: Tablica krawedzi krotek obietkow typu Point, ktore symbolizuja dane krawedzie
+    """
+    n = len(pointTab)
+    edgesSet = set()  # zbior krawedzi
+
+    for i in range(n - 1):
+        point1 = pointTab[i]
+        point2 = pointTab[i + 1]
+        edgesSet.add((point1, point2))
+
+    return edgesSet
 
 
 def delunay(polygon: list):
@@ -535,6 +551,7 @@ def delunay(polygon: list):
 
 
     triangleSol = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
+
     return createListEdges(createSetEdges(triangleSol))
 
 if __name__ == '__main__':
