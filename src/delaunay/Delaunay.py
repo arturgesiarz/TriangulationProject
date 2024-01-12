@@ -399,7 +399,7 @@ def deletedBorder(triangleMap: set[Triangle], zeroTriangle: Triangle):
 
     return triagleSol
 
-def createSetEdges(triagleSol: set[Triangle]):
+def createSetEdgesToPrintAll(triagleSol: set[Triangle]):
     """
     Funkcja tworzy zbior krwawedzi ze wszystkich trojkatow obiektow Point
     :param triagleSol:
@@ -512,7 +512,7 @@ def isCut(triangle: Triangle, edge: tuple[Point,Point]):
 
     return False
 
-def createEdges(pointTab: list[Point]):
+def createSetEdges(pointTab: list[Point]):
     """
     Funkcja dla poczatkowego zbioru punktow, tworzy poczatkowy zbior krawedzi.
     :param pointTab:
@@ -528,6 +528,24 @@ def createEdges(pointTab: list[Point]):
 
     return edgesSet
 
+def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[Triangle]):
+    """
+    Funkcja znajduje wszystkie trojkaty ktore przecinaja krawedzie naszej figry
+    :param edgesSet:
+    :param triangleToDetector:
+    :return: Mapa z kluczem jako krawedz, a z wartosciami jako lista trojkatow ktore przecinaja dana krawedz
+    """
+    cuttersMap = dict()
+
+    for edge in edgesSet:
+        cuttersMap[edge] = []
+
+        for triangle in triangleToDetector:
+            if isCut(triangle, edge):  # dany trojkat przecina dana krawedz
+                cuttersMap[edge].append(triangle)
+
+    return cuttersMap
+
 
 def delunay(polygon: list):
     """
@@ -536,8 +554,12 @@ def delunay(polygon: list):
     :return: wartość bool - true, jeśli wielokąt jest monotoniczny i false jeśli nie jest
     """
     n = len(polygon)
+
     zeroTriangle = extremePoints(polygon)  # nastepuje znalezienie trojkata, ktory obejmuje wszystkie punkty
+
     pointTab = createPointTab(polygon)
+    edgesSet = createSetEdges(pointTab)
+
     triangleMap = inicializeWithStartTriangle(pointTab,zeroTriangle)  # mapa aktualnie znajdujacych sie trojkatow w triangulacji
 
     for i in range(1, n):  # przegladam nasze kolejne punkty
@@ -550,9 +572,9 @@ def delunay(polygon: list):
                 triangleMap = bfsTriangleEdgeRemover(triangleMap, triangleFind, pointTab[i], triangleSearchMap,zeroTriangle)  # aktualizuje stan trojkatow
 
 
-    triangleSol = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
+    triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
 
-    return createListEdges(createSetEdges(triangleSol))
+    return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
 if __name__ == '__main__':
 
@@ -576,4 +598,3 @@ if __name__ == '__main__':
     triangle = Triangle(Point(4, 1),Point(4, 4),Point(7, 1))
     edge = (Point(6, 5),Point(6, 0))
     print(isCut(triangle, edge))
-
