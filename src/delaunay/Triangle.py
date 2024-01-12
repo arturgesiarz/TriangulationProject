@@ -11,6 +11,48 @@ class Triangle:
         self.secondNeigh = None  # prawy sasiad
         self.thirdNeigh = None  # trzeci somsiad
 
+    def findNewDiagonal(self, other):
+        """
+        Funkcja znajduje nowa przekatna pomiedzy dwoma polaczonymi trojkatami, o ile sie da to zrobic
+        :param other:
+        :return:
+        """
+        conectionEdge = self.findTheConnectingSection(other)  # znajduje krawedz laczaca
+
+        firstPointDiagonal = None
+        secondPointDiagonal = None
+
+        if conectionEdge is not None:  # sprawdzam czy polaczecie z danym trojaktem istenieje
+            edgePointA = conectionEdge[0]
+            edgePointB = conectionEdge[1]
+
+            # dla aktualnego trojkata
+            if self.a == edgePointA and self.b == edgePointB or self.b == edgePointA and self.a == edgePointB:
+                firstPointDiagonal = self.c
+
+            if self.b == edgePointA and self.c == edgePointB or self.c == edgePointA and self.b == edgePointB:
+                firstPointDiagonal = self.a
+
+            if self.a == edgePointA and self.c == edgePointB or self.c == edgePointA and self.a == edgePointB:
+                firstPointDiagonal = self.b
+
+            # dla other
+            if other.a == edgePointA and other.b == edgePointB or other.b == edgePointA and other.a == edgePointB:
+                secondPointDiagonal = other.c
+
+            if other.b == edgePointA and other.c == edgePointB or other.c == edgePointA and other.b == edgePointB:
+                secondPointDiagonal = other.a
+
+            if other.a == edgePointA and other.c == edgePointB or other.c == edgePointA and other.a == edgePointB:
+                secondPointDiagonal = other.b
+
+            return (firstPointDiagonal, secondPointDiagonal, edgePointA),\
+                (firstPointDiagonal, secondPointDiagonal, edgePointB)
+
+        return None
+
+
+
     def noNeigh(self):
         """
         Metoda zliacza ile nasz trojkat ma sasiadow

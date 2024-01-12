@@ -123,8 +123,7 @@ def bfsTriangleSearcherMapCreator(triangleMap: set, startTriangle: Triangle, sta
             if startPoint.doesPointContainedWithinTheCircle(v.firstNeigh):
                 toSearchTriangleMap.add(v.firstNeigh)
 
-                visited[
-                    v.firstNeigh] = True  # interesuje mnie dodanie elementow do kolejki ktore spelniaja moje wymagania
+                visited[v.firstNeigh] = True  # interesuje mnie dodanie elementow do kolejki ktore spelniaja moje wymagania
                 Q.append(v.firstNeigh)
 
         if v.secondNeigh is not None and v.firstNeigh in visited and visited[v.secondNeigh] is False:
@@ -526,6 +525,10 @@ def createSetEdges(pointTab: list[Point]):
         point2 = pointTab[i + 1]
         edgesSet.add((point1, point2))
 
+    point1 = pointTab[-1]
+    point2 = pointTab[0]
+    edgesSet.add((point1, point2))
+
     return edgesSet
 
 def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[Triangle]):
@@ -538,13 +541,32 @@ def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[
     cuttersMap = dict()
 
     for edge in edgesSet:
-        cuttersMap[edge] = []
+        cuttersMap[edge] = set()
 
         for triangle in triangleToDetector:
             if isCut(triangle, edge):  # dany trojkat przecina dana krawedz
-                cuttersMap[edge].append(triangle)
+                cuttersMap[edge].add(triangle)
 
     return cuttersMap
+
+def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]]):
+    """
+    Funkcja zamienia przekatne danych trojkatow, ktore przecinaja krawedzie
+    :param cuttersMap:
+    :return:
+    """
+    for edge in cuttersMap.keys():  # przegladam wszystkie krawedzie
+        if len(cuttersMap[edge]) > 0:  # to znaczy ze isteniaja jakies trojkaty, ktore przecinaja ta krawedz
+            for triangle in cuttersMap[edge].copy():  # przegladam zbior trojkatow, ktore przecinaja ta krawedz
+
+                if triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
+                    pass
+
+                elif triangle.secondNeigh in cuttersMap[edge]:
+                    pass
+
+                elif triangle.thirdNeigh in cuttersMap[edge]:
+                    pass
 
 
 def delunay(polygon: list):
@@ -597,4 +619,4 @@ if __name__ == '__main__':
 
     triangle = Triangle(Point(4, 1),Point(4, 4),Point(7, 1))
     edge = (Point(6, 5),Point(6, 0))
-    print(isCut(triangle, edge))
+    #print(isCut(triangle, edge))
