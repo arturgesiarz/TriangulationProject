@@ -49,7 +49,7 @@ class Triangle:
             return (firstPointDiagonal, secondPointDiagonal, edgePointA),\
                 (firstPointDiagonal, secondPointDiagonal, edgePointB)
 
-        return None
+        return None, None
 
 
 

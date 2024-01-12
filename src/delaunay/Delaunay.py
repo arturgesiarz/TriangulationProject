@@ -549,7 +549,7 @@ def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[
 
     return cuttersMap
 
-def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]]):
+def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], triangleToDetector: set[Triangle]):
     """
     Funkcja zamienia przekatne danych trojkatow, ktore przecinaja krawedzie
     :param cuttersMap:
@@ -560,7 +560,20 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]]):
             for triangle in cuttersMap[edge].copy():  # przegladam zbior trojkatow, ktore przecinaja ta krawedz
 
                 if triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
-                    pass
+                    trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.firstNeigh)
+
+                    if trianglePointFirst is not None and trianglePointSecond is not None:
+                        triangleFirst = Triangle(trianglePointFirst[0], trianglePointFirst[1], trianglePointFirst[2])
+                        triangleSecond = Triangle(trianglePointSecond[0], trianglePointSecond[1], trianglePointSecond[2])
+
+                        triangleFirst.firstNeigh = triangleSecond
+                        triangleSecond.firstNeigh = triangleFirst
+
+                        # todo najpiew sprawdzic czy ta przekatna nowo utworzona nie przecina innego odcinka !!!
+                        # todo a dopiero pozniej zmienic usunac dany trojkat i zmienic jego sasiadow !!!
+
+                        if triangle.secondNeigh is not None:
+                            pass
 
                 elif triangle.secondNeigh in cuttersMap[edge]:
                     pass
