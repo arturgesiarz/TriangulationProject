@@ -10,6 +10,9 @@
             te trojkaty a nastepnie wyrzucamy srodek i nasz punkt laczymy z kazdym punktem tworzaca ta przesten.
         3. Wyrzucamy krawedz poczatkowego duzego trojkata i wszystkie incydente do niej.
         4. Wynikiem sa pozostale krawedzie.
+
+    Kiedy wyznaczmy juz triangulacje tak napawde w tym momencie tylko dla chmury punktow musimy odzyskac krawedzie, ktore
+    zostaly stracone.
 """
 
 from src.delaunay.LineFunction import LineFunction
@@ -481,6 +484,34 @@ def printSolution(listEdges, polygon):
     #vis.show()
     return vis
 
+def isCut(triangle: Triangle, edge: tuple[Point,Point]):
+    """
+    Funkcja odpowiada na pytania czy dany trojkat, przecina dana krawedz.
+    Funkcja ta bedzie pomocna przy procedurze odzyskiwania krawedzi
+    :return:
+    """
+    edgeLine = LineFunction(edge[0], edge[1])  # tworze funkcje liniowa
+
+    trianAB = LineFunction(triangle.a, triangle.b)
+    trianBC = LineFunction(triangle.b, triangle.c)
+    trianAC = LineFunction(triangle.a, triangle.c)
+
+    # znajduje przeciecia danych prostych ze soba
+    intersectAB = edgeLine.findIntersection(trianAB)
+    intersectAC = edgeLine.findIntersection(trianAC)
+    intersectBC = edgeLine.findIntersection(trianBC)
+
+    if intersectAB is not None and trianAB.maxX > intersectAB > trianAB.minX:
+        return True
+
+    if intersectAC is not None and trianAC.maxX > intersectAC > trianAC.minX:
+        return True
+
+    if intersectBC is not None and trianBC.maxX > intersectBC > trianBC.minX:
+        return True
+
+    return False
+
 
 def delunay(polygon: list):
     """
@@ -517,11 +548,15 @@ if __name__ == '__main__':
     #     vis.show()
 
     # dla wersji rozszrzeonej testow
-    for test in Testy:
-        for polygon in test:
-            vis = Visualizer()
-            solEdges = delunay(polygon)
-            vis.add_polygon(polygon)
-            vis.add_line_segment(solEdges, color = "black")
-            vis.show()
+    # for test in Testy:
+    #     for polygon in test:
+    #         vis = Visualizer()
+    #         solEdges = delunay(polygon)
+    #         vis.add_polygon(polygon)
+    #         vis.add_line_segment(solEdges, color = "black")
+    #         vis.show()
+
+    triangle = Triangle(Point(4, 1),Point(4, 4),Point(7, 1))
+    edge = (Point(6, 5),Point(6, 0))
+    print(isCut(triangle, edge))
 

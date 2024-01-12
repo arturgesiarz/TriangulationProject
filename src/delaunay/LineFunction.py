@@ -54,7 +54,10 @@ class LineFunction:
         :return: wartosc wspolrzednej x, gdzie sie przecinaja dane proste o ile sie przecinaja, w przeciwnym wypadku jest zwracany None
         """
         if self.vertical and not other.vertical:
-            return other.calculateY(self.pointA.x)
+            return self.pointA.x
+
+        if not self.vertical and other.vertical:
+            return other.pointA.x
 
         if not self.vertical and not other.vertical and self.factorA != other.factorA:  # mam do czynenia z prostymi nie pionowymi oraz nie rownoleglymi
             return (other.factorB - self.factorB) / (self.factorA - other.factorA)

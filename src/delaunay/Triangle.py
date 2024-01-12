@@ -2,7 +2,6 @@
     Klasa slzuzy do przechowywania szczegolnych infomracji o trojkatach
 """
 
-
 class Triangle:
     def __init__(self, a, b, c):
         self.a = a
