@@ -51,8 +51,6 @@ class Triangle:
 
         return None, None
 
-
-
     def noNeigh(self):
         """
         Metoda zliacza ile nasz trojkat ma sasiadow
