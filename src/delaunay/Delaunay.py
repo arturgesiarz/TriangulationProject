@@ -1395,6 +1395,7 @@ def delunay(polygon: list):
 
 if __name__ == '__main__':
     # dla wersji rozszrzeonej testow
+    no_tests = 1
     for test in Testy:
         for polygon in test:
             vis = Visualizer()
@@ -1405,3 +1406,6 @@ if __name__ == '__main__':
             vis.add_line_segment(solEdges, color = "black")
 
             vis.show()
+            vis.save(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/plots/test_{no_tests}")
+
+            no_tests += 1
