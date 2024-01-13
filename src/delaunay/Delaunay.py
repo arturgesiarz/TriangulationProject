@@ -619,7 +619,6 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                 triangle = cuttersMap[edge][0]  # wyciagam pierwszy element z mapy
 
                 if triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
-
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.firstNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
@@ -836,10 +835,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                             deleteTriangle(cuttersMap, triangle)
                             updateCut(cuttersMap, triangleFirst, triangleSecond)
 
-
-
                 elif triangle.secondNeigh in cuttersMap[edge]:
-
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.secondNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
@@ -1056,9 +1052,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                             deleteTriangle(cuttersMap, triangle)
                             updateCut(cuttersMap, triangleFirst, triangleSecond)
 
-
                 elif triangle.thirdNeigh in cuttersMap[edge]:
-
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.thirdNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
@@ -1275,6 +1269,10 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                             deleteTriangle(cuttersMap, triangle)
                             updateCut(cuttersMap, triangleFirst, triangleSecond)
 
+                if triangle in cuttersMap[edge]:
+                    cuttersMap[edge].remove(triangle)
+                    cuttersMap[edge].append(triangle)
+
     return triangleToDetector
 
 def printCutterMap(cutterMap: dict[tuple[Point,Point], set[Triangle]]):
@@ -1311,8 +1309,8 @@ def delunay(polygon: list):
 
     triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
     cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-    #printCutterMap(cutterMap)
-    #convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
+    # printCutterMap(cutterMap)
+    convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
