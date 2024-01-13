@@ -11,27 +11,38 @@ class Triangle:
         self.secondNeigh = None  # prawy sasiad
         self.thirdNeigh = None  # trzeci somsiad
 
-    def sortPointByEdge(self, edge):
+    @staticmethod
+    def _mat_det_2x2(a, b, c):
         """
-        Metoda sortujaca punkty trojkata po glownej krawedzi
+        Metoda liczczaca wyznacznik
+        :param a: Obiekt klasy Point
+        :param b: Obiekt klasy Point
+        :param c: Obiekt klasy Point
+        :return: Wyznacznik 3 punktow
+        """
+        return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
+
+    def checkTriangleCorrect(self, edge):
+        """
+        Metoda sprawdzajaca czy dany trojkat jest, trojkatem prawidlowym czyli takim nalezacym do figury, czy tez nie.
         :return:
         """
-        aPrim = self.a
-        bPrim = self.b
-        cPrim = self.c
+        newA = edge[0]
+        newB = edge[1]
+        newC = None
 
-        self.a = edge[0]
-        self.b = edge[1]
+        if self.a != edge[0] and self.a != edge[1]:
+            newC = self.a
 
-        if aPrim != edge[0] and aPrim != edge[1]:
-            self.c = aPrim
+        elif self.b != edge[0] and self.b != edge[1]:
+            newC = self.b
 
-        elif bPrim != edge[0] and bPrim != edge[1]:
-            self.c = bPrim
+        elif self.c != edge[0] and self.c != edge[1]:
+            newC = self.c
 
-        elif cPrim != edge[0] and cPrim != edge[1]:
-            self.c = cPrim
-
+        if self._mat_det_2x2(newA, newB, newC) < 0:  # znaczy to, ze dany trojkat nie spelnia wymagan
+            return False
+        return True
 
     def whetherEdgesBelongToThisTriangle(self, edge):
         """

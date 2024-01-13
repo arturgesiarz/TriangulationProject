@@ -1290,6 +1290,73 @@ def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,
     Funkcja wyznacza odpowiednie trojkaty, ktore sa brzegowe.
     :return:
     """
+    toDeleteTriangles = set()  # zbior trojkatow do usuniecia
+    borderTriangles = set()  # zbior brzegowych trojkatow
+    for edge in edgesSet:
+        for triangle in triangleToDetector:
+            # sprawdzam czy dana krawedz jest boczna a natepnie czy, trojkat jest prawidlowy
+            if triangle.whetherEdgesBelongToThisTriangle(edge):
+                if not triangle.checkTriangleCorrect(edge):
+                    toDeleteTriangles.add(triangle)
+                else:
+                    borderTriangles.add(triangle)
+
+    # usuwam z glownego zbioru trojkaty ktore nie spelniaja wymogow
+    for triangle in toDeleteTriangles:
+        triangleToDetector.remove(triangle)
+
+    visited = iniclizationVisited(toDeleteTriangles)
+    v = toDeleteTriangles.pop()
+
+    Q = deque()
+    Q.append(v)
+
+    visited[v] = True
+
+    while len(Q) > 0:
+        triangle = Q.popleft()
+
+        if triangle.firstNeigh is not None and not triangle.firstNeigh in borderTriangles:
+
+            if triangle.firstNeigh in visited and visited[triangle.firstNeigh] is False:
+                visited[triangle.firstNeigh] = True
+                toDeleteTriangles.add(triangle.firstNeigh)
+                Q.append(triangle.firstNeigh)
+
+            if not triangle.firstNeigh in visited:
+                visited[triangle.firstNeigh] = True
+                toDeleteTriangles.add(triangle.firstNeigh)
+                Q.append(triangle.firstNeigh)
+
+        if triangle.secondNeigh is not None and not triangle.secondNeigh in borderTriangles:
+
+            if triangle.secondNeigh in visited and visited[triangle.secondNeigh] is False:
+                visited[triangle.secondNeigh] = True
+                toDeleteTriangles.add(triangle.secondNeigh)
+                Q.append(triangle.secondNeigh)
+
+            if not triangle.secondNeigh in visited:
+                visited[triangle.secondNeigh] = True
+                toDeleteTriangles.add(triangle.secondNeigh)
+                Q.append(triangle.secondNeigh)
+
+        if triangle.thirdNeigh is not None and not triangle.thirdNeigh in borderTriangles:
+
+            if triangle.thirdNeigh in visited and visited[triangle.thirdNeigh] is False:
+                visited[triangle.thirdNeigh] = True
+                toDeleteTriangles.add(triangle.thirdNeigh)
+                Q.append(triangle.thirdNeigh)
+
+            if not triangle.thirdNeigh in visited:
+                visited[triangle.thirdNeigh] = True
+                toDeleteTriangles.add(triangle.thirdNeigh)
+                Q.append(triangle.thirdNeigh)
+
+        # potwarzam czystki
+        for triangle in toDeleteTriangles:
+            if triangle in triangleToDetector:
+                triangleToDetector.remove(triangle)
+
 
 def delunay(polygon: list):
     """
@@ -1322,7 +1389,7 @@ def delunay(polygon: list):
     convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
     triangleToDetector = deletedBorder(triangleMap, zeroTriangle)
 
-    # selectTriangle(triangleToDetector, edgesSet)
+    selectTriangle(triangleToDetector, edgesSet)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
