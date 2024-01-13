@@ -556,34 +556,13 @@ def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[
     cuttersMap = dict()
 
     for edge in edgesSet:
-        cuttersMap[edge] = set()
+        cuttersMap[edge] = []  # tworze to jako tablice aby moc latwo iterowac sie po tym
 
         for triangle in triangleToDetector:
             if isCut(triangle, edge):  # dany trojkat przecina dana krawedz
-                cuttersMap[edge].add(triangle)
+                cuttersMap[edge].append(triangle)
 
     return cuttersMap
-
-
-# def whetherTwoEdgesCut(edge1: tuple[Point, Point], edge2: tuple[Point, Point]):
-#     """
-#     Funkcja sprawdza czy dwa odcinki sie przecinanaj czy tez, nie.
-#     :param edge1: Odcinek pierwszy
-#     :param edge2: Odcinek drugi
-#     :return: True jesli odcinki sie przeciaja, False jesli sie nie przecianaja
-#     """
-#     function1 = LineFunction(edge1[0], edge1[1])
-#     function2 = LineFunction(edge2[0], edge2[1])
-#
-#     intersectBetweenTwoFunc = function1.findIntersection(function2)
-#
-#     if intersectBetweenTwoFunc is not None:
-#         # przypadek, kiedy jeden z odcinkow jest pionowy, to zawsze drugi nie moze byc pionowy, ponieaz przeciecie istenieje
-#         if function1.vertical and function2.maxX > intersectBetweenTwoFunc > function2.minX:
-#             return True
-#         if function2.vertical and function1.maxX > intersectBetweenTwoFunc > function1.minX:
-#             return True
-#     return False
 
 
 def whetherCutAnyEdge(edgesSet: set[tuple[Point,Point]], edge: tuple[Point,Point]):
@@ -601,7 +580,7 @@ def whetherCutAnyEdge(edgesSet: set[tuple[Point,Point]], edge: tuple[Point,Point
     return False
 
 
-def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], triangleToDetector: set[Triangle],
+def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangleToDetector: set[Triangle],
                        edgesSet: set[tuple[Point,Point]]):
     """
     Funkcja zamienia przekatne danych trojkatow, ktore przecinaja krawedzie
@@ -611,657 +590,691 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], tria
     :return:
     """
     for edge in cuttersMap.keys():  # przegladam wszystkie krawedzie
-        if len(cuttersMap[edge]) > 0:  # to znaczy ze isteniaja jakies trojkaty, ktore przecinaja ta krawedz
-            for triangle in cuttersMap[edge].copy():  # przegladam zbior trojkatow, ktore przecinaja ta krawedz
-                if triangle in cuttersMap[edge]:   #TODO WYJEBAC TEN SET BO, MIMO WSZYSTKO KIEDY USUWAM TAK NAPRAWDE NIE USUWAM - ZAMIENIEC NA ZWYKLA TABLICE
-                    if triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
+        k = len(cuttersMap[edge])
+        if k > 0:  # to znaczy ze isteniaja jakies trojkaty, ktore przecinaja ta krawedz
+            while len(cuttersMap[edge]) > 0:
+                triangle = cuttersMap[edge][0]  # wyciagam pierwszy element z mapy
 
-                        trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.firstNeigh)
+                if triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
 
-                        if trianglePointFirst is not None and trianglePointSecond is not None:
+                    trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.firstNeigh)
 
-                            newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
+                    if trianglePointFirst is not None and trianglePointSecond is not None:
 
-                            if not whetherCutAnyEdge(edgesSet, newDiagonal):  # znaczy to ze nie przecinam zadnej krawedzi ta zamiana
+                        newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
 
-                                triangleFirst = Triangle(trianglePointFirst[0],
-                                                         trianglePointFirst[1],
-                                                         trianglePointFirst[2])
+                        if not whetherCutAnyEdge(edgesSet, newDiagonal):  # znaczy to ze nie przecinam zadnej krawedzi ta zamiana
 
-                                triangleSecond = Triangle(trianglePointSecond[0],
-                                                          trianglePointSecond[1],
-                                                          trianglePointSecond[2])
+                            triangleFirst = Triangle(trianglePointFirst[0],
+                                                     trianglePointFirst[1],
+                                                     trianglePointFirst[2])
 
-                                # dodaje sasiadow miedzy soba
-                                triangleFirst.firstNeigh = triangleSecond
-                                triangleSecond.firstNeigh = triangleFirst
+                            triangleSecond = Triangle(trianglePointSecond[0],
+                                                      trianglePointSecond[1],
+                                                      trianglePointSecond[2])
 
-                                if triangle.secondNeigh is not None:
-                                    whichNeighWeAre = triangle.whichNeigh(triangle.secondNeigh)
+                            # dodaje sasiadow miedzy soba
+                            triangleFirst.firstNeigh = triangleSecond
+                            triangleSecond.firstNeigh = triangleFirst
 
-                                    if triangle.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
+                            if triangle.secondNeigh is not None:
+                                whichNeighWeAre = triangle.whichNeigh(triangle.secondNeigh)
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                if triangle.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.secondNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.thirdNeigh = triangleFirst
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.secondNeigh
 
-                                    elif triangle.secondNeigh.findTheConnectingSection(triangleSecond) is not None:
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.thirdNeigh = triangleFirst
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                elif triangle.secondNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.secondNeigh
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.secondNeigh
 
-                                if triangle.thirdNeigh is not None:
-                                    whichNeighWeAre = triangle.whichNeigh(triangle.thirdNeigh)
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.thirdNeigh = triangleSecond
 
-                                    if triangle.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
+                            if triangle.thirdNeigh is not None:
+                                whichNeighWeAre = triangle.whichNeigh(triangle.thirdNeigh)
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                if triangle.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.thirdNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.thirdNeigh = triangleFirst
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.thirdNeigh
 
-                                    elif triangle.thirdNeigh.findTheConnectingSection(triangleSecond) is not None:
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.thirdNeigh = triangleFirst
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                elif triangle.thirdNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.thirdNeigh
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.thirdNeigh
 
-                                if triangle.firstNeigh.firstNeigh is not None \
-                                        and triangle.firstNeigh.firstNeigh != triangle:
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.thirdNeigh = triangleSecond
 
-                                    whichNeighWeAre = triangle.firstNeigh.whichNeigh(triangle.firstNeigh.firstNeigh)
+                            if triangle.firstNeigh.firstNeigh is not None \
+                                    and triangle.firstNeigh.firstNeigh != triangle:
 
-                                    if triangle.firstNeigh.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                whichNeighWeAre = triangle.firstNeigh.whichNeigh(triangle.firstNeigh.firstNeigh)
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                if triangle.firstNeigh.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.firstNeigh.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.firstNeigh.firstNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.firstNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.firstNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.firstNeigh.thirdNeigh = triangleFirst
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.firstNeigh.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.firstNeigh.firstNeigh
 
-                                    elif triangle.firstNeigh.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.firstNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.firstNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.firstNeigh.thirdNeigh = triangleFirst
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                elif triangle.firstNeigh.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.firstNeigh.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.firstNeigh.firstNeigh
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.firstNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.firstNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.firstNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.firstNeigh.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.firstNeigh.firstNeigh
 
-                                if triangle.firstNeigh.secondNeigh is not None \
-                                        and triangle.firstNeigh.secondNeigh != triangle:
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.firstNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.firstNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.firstNeigh.thirdNeigh = triangleSecond
 
-                                    whichNeighWeAre = triangle.firstNeigh.whichNeigh(triangle.firstNeigh.secondNeigh)
+                            if triangle.firstNeigh.secondNeigh is not None \
+                                    and triangle.firstNeigh.secondNeigh != triangle:
 
-                                    if triangle.firstNeigh.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                whichNeighWeAre = triangle.firstNeigh.whichNeigh(triangle.firstNeigh.secondNeigh)
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                if triangle.firstNeigh.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.firstNeigh.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.firstNeigh.secondNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.secondNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.secondNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.secondNeigh.thirdNeigh = triangleFirst
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.firstNeigh.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.firstNeigh.secondNeigh
 
-                                    elif triangle.firstNeigh.secondNeigh.findTheConnectingSection(
-                                            triangleSecond) is not None:
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.secondNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.secondNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.secondNeigh.thirdNeigh = triangleFirst
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                elif triangle.firstNeigh.secondNeigh.findTheConnectingSection(
+                                        triangleSecond) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.firstNeigh.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.firstNeigh.secondNeigh
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.secondNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.secondNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.secondNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.firstNeigh.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.firstNeigh.secondNeigh
 
-                                if triangle.firstNeigh.thirdNeigh is not None \
-                                        and triangle.firstNeigh.thirdNeigh != triangle:
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.secondNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.secondNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.secondNeigh.thirdNeigh = triangleSecond
 
-                                    whichNeighWeAre = triangle.firstNeigh.whichNeigh(triangle.firstNeigh.thirdNeigh)
+                            if triangle.firstNeigh.thirdNeigh is not None \
+                                    and triangle.firstNeigh.thirdNeigh != triangle:
 
-                                    if triangle.firstNeigh.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                whichNeighWeAre = triangle.firstNeigh.whichNeigh(triangle.firstNeigh.thirdNeigh)
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                if triangle.firstNeigh.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.firstNeigh.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.firstNeigh.thirdNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.thirdNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.thirdNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.thirdNeigh.thirdNeigh = triangleFirst
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.firstNeigh.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.firstNeigh.thirdNeigh
 
-                                    elif triangle.firstNeigh.thirdNeigh.findTheConnectingSection(
-                                            triangleSecond) is not None:
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.thirdNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.thirdNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.thirdNeigh.thirdNeigh = triangleFirst
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                elif triangle.firstNeigh.thirdNeigh.findTheConnectingSection(
+                                        triangleSecond) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.firstNeigh.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.firstNeigh.thirdNeigh
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.thirdNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.thirdNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.thirdNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.firstNeigh.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.firstNeigh.thirdNeigh
 
-                                if triangle.firstNeigh in triangleToDetector:
-                                    triangleToDetector.remove(triangle.firstNeigh)
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.thirdNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.thirdNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.thirdNeigh.thirdNeigh = triangleSecond
 
-                                triangleToDetector.add(triangleFirst)
-                                triangleToDetector.add(triangleSecond)
+                            if triangle.firstNeigh in triangleToDetector:
+                                triangleToDetector.remove(triangle.firstNeigh)
 
-                                if triangle.firstNeigh in cuttersMap[edge]:
-                                    cuttersMap[edge].remove(triangle.firstNeigh)
+                            triangleToDetector.add(triangleFirst)
+                            triangleToDetector.add(triangleSecond)
 
-                    elif triangle.secondNeigh in cuttersMap[edge]:
+                            if triangle.firstNeigh in cuttersMap[edge]:
+                                cuttersMap[edge].remove(triangle.firstNeigh)
 
-                        trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.secondNeigh)
+                            if triangle in triangleToDetector:
+                                triangleToDetector.remove(triangle)
 
-                        if trianglePointFirst is not None and trianglePointSecond is not None:
+                            if triangle in cuttersMap[edge]:
+                                cuttersMap[edge].remove(triangle)
 
-                            newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
+                            # znaczy ze nowy trojkat przecina nam krawedz
+                            if isCut(triangleFirst, edge):
+                                cuttersMap[edge].append(triangleFirst)
 
-                            if not whetherCutAnyEdge(edgesSet, newDiagonal):  # znaczy to ze nie przecinam zadnej krawedzi ta zamiana
+                            if isCut(triangleSecond, edge):
+                                cuttersMap[edge].append(triangleSecond)
 
-                                triangleFirst = Triangle(trianglePointFirst[0],
-                                                         trianglePointFirst[1],
-                                                         trianglePointFirst[2])
+                elif triangle.secondNeigh in cuttersMap[edge]:
 
-                                triangleSecond = Triangle(trianglePointSecond[0],
-                                                          trianglePointSecond[1],
-                                                          trianglePointSecond[2])
+                    trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.secondNeigh)
 
-                                # dodaje sasiadow miedzy soba
-                                triangleFirst.firstNeigh = triangleSecond
-                                triangleSecond.firstNeigh = triangleFirst
+                    if trianglePointFirst is not None and trianglePointSecond is not None:
 
-                                if triangle.firstNeigh is not None:
-                                    whichNeighWeAre = triangle.whichNeigh(triangle.firstNeigh)
+                        newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
 
-                                    if triangle.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
+                        if not whetherCutAnyEdge(edgesSet, newDiagonal):  # znaczy to ze nie przecinam zadnej krawedzi ta zamiana
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                            triangleFirst = Triangle(trianglePointFirst[0],
+                                                     trianglePointFirst[1],
+                                                     trianglePointFirst[2])
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.firstNeigh
+                            triangleSecond = Triangle(trianglePointSecond[0],
+                                                      trianglePointSecond[1],
+                                                      trianglePointSecond[2])
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.thirdNeigh = triangleFirst
+                            # dodaje sasiadow miedzy soba
+                            triangleFirst.firstNeigh = triangleSecond
+                            triangleSecond.firstNeigh = triangleFirst
 
-                                    elif triangle.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
+                            if triangle.firstNeigh is not None:
+                                whichNeighWeAre = triangle.whichNeigh(triangle.firstNeigh)
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                if triangle.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.firstNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.firstNeigh
 
-                                if triangle.thirdNeigh is not None:
-                                    whichNeighWeAre = triangle.whichNeigh(triangle.thirdNeigh)
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.thirdNeigh = triangleFirst
 
-                                    if triangle.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                elif triangle.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.thirdNeigh
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.firstNeigh
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.thirdNeigh = triangleFirst
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.thirdNeigh = triangleSecond
 
-                                    elif triangle.thirdNeigh.findTheConnectingSection(triangleSecond) is not None:
+                            if triangle.thirdNeigh is not None:
+                                whichNeighWeAre = triangle.whichNeigh(triangle.thirdNeigh)
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                if triangle.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.thirdNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.thirdNeigh
 
-                                if triangle.secondNeigh.firstNeigh is not None \
-                                        and triangle.secondNeigh.firstNeigh != triangle:
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.thirdNeigh = triangleFirst
 
-                                    whichNeighWeAre = triangle.secondNeigh.whichNeigh(triangle.secondNeigh.firstNeigh)
+                                elif triangle.thirdNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                    if triangle.secondNeigh.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.thirdNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.secondNeigh.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.secondNeigh.firstNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.thirdNeigh = triangleSecond
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.firstNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.firstNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.firstNeigh.thirdNeigh = triangleFirst
+                            if triangle.secondNeigh.firstNeigh is not None \
+                                    and triangle.secondNeigh.firstNeigh != triangle:
 
-                                    elif triangle.secondNeigh.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
+                                whichNeighWeAre = triangle.secondNeigh.whichNeigh(triangle.secondNeigh.firstNeigh)
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                if triangle.secondNeigh.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.secondNeigh.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.secondNeigh.firstNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.firstNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.firstNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.firstNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.secondNeigh.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.secondNeigh.firstNeigh
 
-                                if triangle.secondNeigh.secondNeigh is not None \
-                                        and triangle.secondNeigh.secondNeigh != triangle:
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.firstNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.firstNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.firstNeigh.thirdNeigh = triangleFirst
 
-                                    whichNeighWeAre = triangle.secondNeigh.whichNeigh(triangle.secondNeigh.secondNeigh)
+                                elif triangle.secondNeigh.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                    if triangle.secondNeigh.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.secondNeigh.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.secondNeigh.firstNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.secondNeigh.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.secondNeigh.secondNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.firstNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.firstNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.firstNeigh.thirdNeigh = triangleSecond
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.secondNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.secondNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.secondNeigh.thirdNeigh = triangleFirst
+                            if triangle.secondNeigh.secondNeigh is not None \
+                                    and triangle.secondNeigh.secondNeigh != triangle:
 
-                                    elif triangle.secondNeigh.secondNeigh.findTheConnectingSection(
-                                            triangleSecond) is not None:
+                                whichNeighWeAre = triangle.secondNeigh.whichNeigh(triangle.secondNeigh.secondNeigh)
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                if triangle.secondNeigh.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.secondNeigh.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.secondNeigh.secondNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.secondNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.secondNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.secondNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.secondNeigh.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.secondNeigh.secondNeigh
 
-                                if triangle.secondNeigh.thirdNeigh is not None \
-                                        and triangle.secondNeigh.thirdNeigh != triangle:
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.secondNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.secondNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.secondNeigh.thirdNeigh = triangleFirst
 
-                                    whichNeighWeAre = triangle.secondNeigh.whichNeigh(triangle.secondNeigh.thirdNeigh)
+                                elif triangle.secondNeigh.secondNeigh.findTheConnectingSection(
+                                        triangleSecond) is not None:
 
-                                    if triangle.secondNeigh.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.secondNeigh.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.secondNeigh.secondNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.secondNeigh.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.secondNeigh.thirdNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.secondNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.secondNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.secondNeigh.thirdNeigh = triangleSecond
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.thirdNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.thirdNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.thirdNeigh.thirdNeigh = triangleFirst
+                            if triangle.secondNeigh.thirdNeigh is not None \
+                                    and triangle.secondNeigh.thirdNeigh != triangle:
 
-                                    elif triangle.secondNeigh.thirdNeigh.findTheConnectingSection(
-                                            triangleSecond) is not None:
+                                whichNeighWeAre = triangle.secondNeigh.whichNeigh(triangle.secondNeigh.thirdNeigh)
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                if triangle.secondNeigh.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.secondNeigh.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.secondNeigh.thirdNeigh
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.thirdNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.thirdNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.thirdNeigh.thirdNeigh = triangleSecond
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.secondNeigh.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.secondNeigh.thirdNeigh
 
-                                if triangle.secondNeigh in triangleToDetector:
-                                    triangleToDetector.remove(triangle.secondNeigh)
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.thirdNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.thirdNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.thirdNeigh.thirdNeigh = triangleFirst
 
-                                triangleToDetector.add(triangleFirst)
-                                triangleToDetector.add(triangleSecond)
+                                elif triangle.secondNeigh.thirdNeigh.findTheConnectingSection(
+                                        triangleSecond) is not None:
 
-                                if triangle.secondNeigh in cuttersMap[edge]:
-                                    cuttersMap[edge].remove(triangle.secondNeigh)
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                    elif triangle.thirdNeigh in cuttersMap[edge]:
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.secondNeigh.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.secondNeigh.thirdNeigh
 
-                        trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.thirdNeigh)
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.thirdNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.thirdNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.thirdNeigh.thirdNeigh = triangleSecond
 
-                        if trianglePointFirst is not None and trianglePointSecond is not None:
+                            if triangle.secondNeigh in triangleToDetector:
+                                triangleToDetector.remove(triangle.secondNeigh)
 
-                            newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
+                            triangleToDetector.add(triangleFirst)
+                            triangleToDetector.add(triangleSecond)
 
-                            if not whetherCutAnyEdge(edgesSet, newDiagonal):  # znaczy to ze nie przecinam zadnej krawedzi ta zamiana
+                            if triangle.secondNeigh in cuttersMap[edge]:
+                                cuttersMap[edge].remove(triangle.secondNeigh)
 
-                                triangleFirst = Triangle(trianglePointFirst[0],
-                                                         trianglePointFirst[1],
-                                                         trianglePointFirst[2])
+                            if triangle in triangleToDetector:
+                                triangleToDetector.remove(triangle)
 
-                                triangleSecond = Triangle(trianglePointSecond[0],
-                                                          trianglePointSecond[1],
-                                                          trianglePointSecond[2])
+                            if triangle in cuttersMap[edge]:
+                                cuttersMap[edge].remove(triangle)
 
-                                # dodaje sasiadow miedzy soba
-                                triangleFirst.firstNeigh = triangleSecond
-                                triangleSecond.firstNeigh = triangleFirst
+                            # znaczy ze nowy trojkat przecina nam krawedz
+                            if isCut(triangleFirst, edge):
+                                cuttersMap[edge].append(triangleFirst)
 
-                                if triangle.firstNeigh is not None:
-                                    whichNeighWeAre = triangle.whichNeigh(triangle.firstNeigh)
+                            if isCut(triangleSecond, edge):
+                                cuttersMap[edge].append(triangleSecond)
 
-                                    if triangle.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
+                elif triangle.thirdNeigh in cuttersMap[edge]:
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                    trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.thirdNeigh)
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.firstNeigh
+                    if trianglePointFirst is not None and trianglePointSecond is not None:
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.thirdNeigh = triangleFirst
+                        newDiagonal = (trianglePointFirst[0], trianglePointFirst[1])  # wyznaczam nowa przekatna
 
-                                    elif triangle.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
+                        if not whetherCutAnyEdge(edgesSet, newDiagonal):  # znaczy to ze nie przecinam zadnej krawedzi ta zamiana
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                            triangleFirst = Triangle(trianglePointFirst[0],
+                                                     trianglePointFirst[1],
+                                                     trianglePointFirst[2])
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.firstNeigh
+                            triangleSecond = Triangle(trianglePointSecond[0],
+                                                      trianglePointSecond[1],
+                                                      trianglePointSecond[2])
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.firstNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.firstNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.firstNeigh.thirdNeigh = triangleSecond
+                            # dodaje sasiadow miedzy soba
+                            triangleFirst.firstNeigh = triangleSecond
+                            triangleSecond.firstNeigh = triangleFirst
 
-                                if triangle.secondNeigh is not None:
-                                    whichNeighWeAre = triangle.whichNeigh(triangle.secondNeigh)
+                            if triangle.firstNeigh is not None:
+                                whichNeighWeAre = triangle.whichNeigh(triangle.firstNeigh)
 
-                                    if triangle.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                if triangle.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.secondNeigh
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.firstNeigh
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.thirdNeigh = triangleFirst
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.thirdNeigh = triangleFirst
 
-                                    elif triangle.secondNeigh.findTheConnectingSection(triangleSecond) is not None:
+                                elif triangle.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.secondNeigh
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.firstNeigh
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.secondNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.secondNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.secondNeigh.thirdNeigh = triangleSecond
+                                    if whichNeighWeAre == 1:
+                                        triangle.firstNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.firstNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.firstNeigh.thirdNeigh = triangleSecond
 
-                                if triangle.thirdNeigh.firstNeigh is not None \
-                                        and triangle.thirdNeigh.firstNeigh != triangle:
+                            if triangle.secondNeigh is not None:
+                                whichNeighWeAre = triangle.whichNeigh(triangle.secondNeigh)
 
-                                    whichNeighWeAre = triangle.thirdNeigh.whichNeigh(triangle.thirdNeigh.firstNeigh)
+                                if triangle.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                    if triangle.thirdNeigh.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.secondNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.thirdNeigh.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.thirdNeigh.firstNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.thirdNeigh = triangleFirst
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.firstNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.firstNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.firstNeigh.thirdNeigh = triangleFirst
+                                elif triangle.secondNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                    elif triangle.thirdNeigh.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.secondNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.thirdNeigh.firstNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.thirdNeigh.firstNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.secondNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.secondNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.secondNeigh.thirdNeigh = triangleSecond
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.firstNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.firstNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.firstNeigh.thirdNeigh = triangleSecond
+                            if triangle.thirdNeigh.firstNeigh is not None \
+                                    and triangle.thirdNeigh.firstNeigh != triangle:
 
-                                if triangle.thirdNeigh.secondNeigh is not None \
-                                        and triangle.thirdNeigh.secondNeigh != triangle:
+                                whichNeighWeAre = triangle.thirdNeigh.whichNeigh(triangle.thirdNeigh.firstNeigh)
 
-                                    whichNeighWeAre = triangle.thirdNeigh.whichNeigh(triangle.thirdNeigh.secondNeigh)
+                                if triangle.thirdNeigh.firstNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                    if triangle.thirdNeigh.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.thirdNeigh.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.thirdNeigh.firstNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.thirdNeigh.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.thirdNeigh.secondNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.firstNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.firstNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.firstNeigh.thirdNeigh = triangleFirst
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.secondNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.secondNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.secondNeigh.thirdNeigh = triangleFirst
+                                elif triangle.thirdNeigh.firstNeigh.findTheConnectingSection(triangleSecond) is not None:
 
-                                    elif triangle.thirdNeigh.secondNeigh.findTheConnectingSection(
-                                            triangleSecond) is not None:
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.thirdNeigh.firstNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.thirdNeigh.firstNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.thirdNeigh.secondNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.thirdNeigh.secondNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.firstNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.firstNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.firstNeigh.thirdNeigh = triangleSecond
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.secondNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.secondNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.secondNeigh.thirdNeigh = triangleSecond
+                            if triangle.thirdNeigh.secondNeigh is not None \
+                                    and triangle.thirdNeigh.secondNeigh != triangle:
 
-                                if triangle.thirdNeigh.thirdNeigh is not None \
-                                        and triangle.thirdNeigh.thirdNeigh != triangle:
+                                whichNeighWeAre = triangle.thirdNeigh.whichNeigh(triangle.thirdNeigh.secondNeigh)
 
-                                    whichNeighWeAre = triangle.thirdNeigh.whichNeigh(triangle.thirdNeigh.thirdNeigh)
+                                if triangle.thirdNeigh.secondNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                    if triangle.thirdNeigh.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleFirst.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.thirdNeigh.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.thirdNeigh.secondNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleFirst.secondNeigh = triangle.thirdNeigh.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleFirst.thirdNeigh = triangle.thirdNeigh.thirdNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.secondNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.secondNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.secondNeigh.thirdNeigh = triangleFirst
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.thirdNeigh.firstNeigh = triangleFirst
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.thirdNeigh.secondNeigh = triangleFirst
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.thirdNeigh.thirdNeigh = triangleFirst
+                                elif triangle.thirdNeigh.secondNeigh.findTheConnectingSection(
+                                        triangleSecond) is not None:
 
-                                    elif triangle.thirdNeigh.thirdNeigh.findTheConnectingSection(
-                                            triangleSecond) is not None:
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
 
-                                        whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.thirdNeigh.secondNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.thirdNeigh.secondNeigh
 
-                                        if whichSlotFree == 2:
-                                            triangleSecond.secondNeigh = triangle.thirdNeigh.thirdNeigh
-                                        if whichSlotFree == 3:
-                                            triangleSecond.thirdNeigh = triangle.thirdNeigh.thirdNeigh
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.secondNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.secondNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.secondNeigh.thirdNeigh = triangleSecond
 
-                                        if whichNeighWeAre == 1:
-                                            triangle.thirdNeigh.thirdNeigh.firstNeigh = triangleSecond
-                                        if whichNeighWeAre == 2:
-                                            triangle.thirdNeigh.thirdNeigh.secondNeigh = triangleSecond
-                                        if whichNeighWeAre == 3:
-                                            triangle.thirdNeigh.thirdNeigh.thirdNeigh = triangleSecond
+                            if triangle.thirdNeigh.thirdNeigh is not None \
+                                    and triangle.thirdNeigh.thirdNeigh != triangle:
 
-                                if triangle.thirdNeigh in triangleToDetector:
-                                    triangleToDetector.remove(triangle.thirdNeigh)
+                                whichNeighWeAre = triangle.thirdNeigh.whichNeigh(triangle.thirdNeigh.thirdNeigh)
 
-                                triangleToDetector.add(triangleFirst)
-                                triangleToDetector.add(triangleSecond)
+                                if triangle.thirdNeigh.thirdNeigh.findTheConnectingSection(triangleFirst) is not None:
 
-                                if triangle.thirdNeigh in cuttersMap[edge]:
-                                    cuttersMap[edge].remove(triangle.thirdNeigh)
+                                    whichSlotFree = triangleFirst.findNewPlaceForNeigh()
 
-                    if triangle in triangleToDetector:
-                        triangleToDetector.remove(triangle)
+                                    if whichSlotFree == 2:
+                                        triangleFirst.secondNeigh = triangle.thirdNeigh.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleFirst.thirdNeigh = triangle.thirdNeigh.thirdNeigh
 
-                    if triangle in cuttersMap[edge]:
-                        cuttersMap[edge].remove(triangle)
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.thirdNeigh.firstNeigh = triangleFirst
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.thirdNeigh.secondNeigh = triangleFirst
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.thirdNeigh.thirdNeigh = triangleFirst
 
+                                elif triangle.thirdNeigh.thirdNeigh.findTheConnectingSection(
+                                        triangleSecond) is not None:
+
+                                    whichSlotFree = triangleSecond.findNewPlaceForNeigh()
+
+                                    if whichSlotFree == 2:
+                                        triangleSecond.secondNeigh = triangle.thirdNeigh.thirdNeigh
+                                    if whichSlotFree == 3:
+                                        triangleSecond.thirdNeigh = triangle.thirdNeigh.thirdNeigh
+
+                                    if whichNeighWeAre == 1:
+                                        triangle.thirdNeigh.thirdNeigh.firstNeigh = triangleSecond
+                                    if whichNeighWeAre == 2:
+                                        triangle.thirdNeigh.thirdNeigh.secondNeigh = triangleSecond
+                                    if whichNeighWeAre == 3:
+                                        triangle.thirdNeigh.thirdNeigh.thirdNeigh = triangleSecond
+
+                            if triangle.thirdNeigh in triangleToDetector:
+                                triangleToDetector.remove(triangle.thirdNeigh)
+
+                            triangleToDetector.add(triangleFirst)
+                            triangleToDetector.add(triangleSecond)
+
+                            if triangle.thirdNeigh in cuttersMap[edge]:
+                                cuttersMap[edge].remove(triangle.thirdNeigh)
+
+                            if triangle in triangleToDetector:
+                                triangleToDetector.remove(triangle)
+
+                            if triangle in cuttersMap[edge]:
+                                cuttersMap[edge].remove(triangle)
+
+                            # znaczy ze nowy trojkat przecina nam krawedz
+                            if isCut(triangleFirst, edge):
+                                cuttersMap[edge].append(triangleFirst)
+
+                            if isCut(triangleSecond, edge):
+                                cuttersMap[edge].append(triangleSecond)
 
     return triangleToDetector
 
@@ -1302,20 +1315,7 @@ def delunay(polygon: list):
     #printCutterMap(cutterMap)
     convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
 
-    cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-    convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
-    #
     # cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-    # convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
-    #
-    # cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-    # convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
-
-
-    #printCutterMap(cutterMap)
-
-
-    # cutterMap = findCuttersEdges(edgesSet, triangleToDetector) TODO DODAC WHILE DO TEGO
     # convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
