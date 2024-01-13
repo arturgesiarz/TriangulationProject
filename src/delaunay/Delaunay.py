@@ -32,7 +32,7 @@ from src.testy.TestsExtended import Testy
 from copy import deepcopy
 from src.visualizer.main import Visualizer  # narzedzie do wizualizacji
 
-def extremePoints(polygon):
+def extremePoints(polygon):  # O(n)
     """
     Funkcja wyznacza trzy skrajne punkty dla naszego wielokata prostego.
     :param polygon: tablica krotek punktów na płaszczyźnie euklidesowej podanych przeciwnie do ruchu wskazówek zegara
@@ -75,7 +75,7 @@ def extremePoints(polygon):
     return Triangle(left_bottom_point, right_bottom_point, middle_upper_point)
 
 
-def createPointTab(polygon):
+def createPointTab(polygon):  # O(n)
     """
     Funkcja tworzy tablice obiektow typu Point, aby moc wygodnie na nich dzialac
     :param polygon: Tablica punktow
@@ -92,7 +92,7 @@ def createPointTab(polygon):
     return pointTab
 
 
-def iniclizationVisited(triangleTab: set):
+def iniclizationVisited(triangleTab: set):  # O(n)
     """
     Funkcja sluzaca do inicializacji poczatkowej tablicy porzechowujacej informacje o tym czy bylismy w danym trojkacie
     :param triangleTab:
@@ -104,7 +104,7 @@ def iniclizationVisited(triangleTab: set):
     return visited
 
 
-def bfsTriangleSearcherMapCreator(triangleMap: set, startTriangle: Triangle, startPoint: Point):
+def bfsTriangleSearcherMapCreator(triangleMap: set, startTriangle: Triangle, startPoint: Point):  # O(n)
     """
     Funkcja przesukuje kolejne trojkaty w naszej aktualnej triangulacji aby wybrac te, ktore spelniaja warunek okregu
     :param triangleMap: Tabila trojkatow
@@ -148,7 +148,7 @@ def bfsTriangleSearcherMapCreator(triangleMap: set, startTriangle: Triangle, sta
 
 
 def bfsTriangleEdgeRemover(triangleMap: set[Triangle], startTriangle: Triangle, startPoint: Point,
-                           toSearchTriangleMap: set[Triangle], zeroTriangle: Triangle):
+                           toSearchTriangleMap: set[Triangle], zeroTriangle: Triangle):  # O(n)
     """
     Funkcja sluzaca do usuwania krawedzi miedzy trojkatami a nastepnie stworzenie nowych trojkatow i zmienienie sasiadow na nowe trojkaty
     :param triangleMap:
@@ -328,7 +328,7 @@ def updateMapForOneTriangle(triangleMap: set, startPoint: Point, startTriangle: 
     return triangleMap
 
 
-def updateNeighOfTheTriangles(newTriangles: set[Triangle]):
+def updateNeighOfTheTriangles(newTriangles: set[Triangle]):  # O(n)
     """
     Funkcja aktualizuje sasiadow naszych trojkatow nowo utworzonych miedzy soba
     :param newTriangles: Nowo utworzona mapa trojkatow ktora bede przegladal i patrzyl czy sie przypadkiem nie przecina
@@ -351,7 +351,7 @@ def updateNeighOfTheTriangles(newTriangles: set[Triangle]):
                     # w druga strone nie sprawdzam poniewaz i tak petla natrafie na taki przypadek
 
 
-def findPointInTriangle(triangleMap, point: Point):
+def findPointInTriangle(triangleMap, point: Point):  # O(n)
     """
     Funkcja znajduje trojkat w ktroym znajduje sie dany punkt
     :param triangleMap: Mapa obiektow klasy Trinalge
@@ -550,7 +550,7 @@ def createSetEdges(pointTab: list[Point]):
 
     return edgesSet
 
-def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[Triangle]):
+def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[Triangle]):  # O(n)
     """
     Funkcja znajduje wszystkie trojkaty ktore przecinaja krawedzie naszej figry
     :param edgesSet:
@@ -596,7 +596,7 @@ def updateCut(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangleFirs
             cuttersMap[edge].append(triangleSecond)
 
 
-def deleteTriangle(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangle: Triangle):
+def deleteTriangle(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangle: Triangle):  # O(n)
     """
     Funkcja usuwa dla danego trojkat z cuttersMap, czyli dla kadej kraedzi ktora przecinal trzeba go usunac
     :return:
@@ -608,7 +608,7 @@ def deleteTriangle(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangl
 
 
 def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangleToDetector: set[Triangle],
-                       edgesSet: set[tuple[Point,Point]]):
+                       edgesSet: set[tuple[Point,Point]]):  # O(n^2)
     """
     Funkcja zamienia przekatne danych trojkatow, ktore przecinaja krawedzie
     :param cuttersMap:
@@ -1305,60 +1305,61 @@ def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,
     for triangle in toDeleteTriangles:
         triangleToDetector.remove(triangle)
 
-    visited = iniclizationVisited(toDeleteTriangles)
-    v = toDeleteTriangles.pop()
+    if len(toDeleteTriangles) > 0:
+        visited = iniclizationVisited(toDeleteTriangles)
+        v = toDeleteTriangles.pop()
 
-    Q = deque()
-    Q.append(v)
+        Q = deque()
+        Q.append(v)
 
-    visited[v] = True
+        visited[v] = True
 
-    while len(Q) > 0:
-        triangle = Q.popleft()
+        while len(Q) > 0:
+            triangle = Q.popleft()
 
-        if triangle.firstNeigh is not None and not triangle.firstNeigh in borderTriangles:
+            if triangle.firstNeigh is not None and not triangle.firstNeigh in borderTriangles:
 
-            if triangle.firstNeigh in visited and visited[triangle.firstNeigh] is False:
-                visited[triangle.firstNeigh] = True
-                toDeleteTriangles.add(triangle.firstNeigh)
-                Q.append(triangle.firstNeigh)
+                if triangle.firstNeigh in visited and visited[triangle.firstNeigh] is False:
+                    visited[triangle.firstNeigh] = True
+                    toDeleteTriangles.add(triangle.firstNeigh)
+                    Q.append(triangle.firstNeigh)
 
-            if not triangle.firstNeigh in visited:
-                visited[triangle.firstNeigh] = True
-                toDeleteTriangles.add(triangle.firstNeigh)
-                Q.append(triangle.firstNeigh)
+                if not triangle.firstNeigh in visited:
+                    visited[triangle.firstNeigh] = True
+                    toDeleteTriangles.add(triangle.firstNeigh)
+                    Q.append(triangle.firstNeigh)
 
-        if triangle.secondNeigh is not None and not triangle.secondNeigh in borderTriangles:
+            if triangle.secondNeigh is not None and not triangle.secondNeigh in borderTriangles:
 
-            if triangle.secondNeigh in visited and visited[triangle.secondNeigh] is False:
-                visited[triangle.secondNeigh] = True
-                toDeleteTriangles.add(triangle.secondNeigh)
-                Q.append(triangle.secondNeigh)
+                if triangle.secondNeigh in visited and visited[triangle.secondNeigh] is False:
+                    visited[triangle.secondNeigh] = True
+                    toDeleteTriangles.add(triangle.secondNeigh)
+                    Q.append(triangle.secondNeigh)
 
-            if not triangle.secondNeigh in visited:
-                visited[triangle.secondNeigh] = True
-                toDeleteTriangles.add(triangle.secondNeigh)
-                Q.append(triangle.secondNeigh)
+                if not triangle.secondNeigh in visited:
+                    visited[triangle.secondNeigh] = True
+                    toDeleteTriangles.add(triangle.secondNeigh)
+                    Q.append(triangle.secondNeigh)
 
-        if triangle.thirdNeigh is not None and not triangle.thirdNeigh in borderTriangles:
+            if triangle.thirdNeigh is not None and not triangle.thirdNeigh in borderTriangles:
 
-            if triangle.thirdNeigh in visited and visited[triangle.thirdNeigh] is False:
-                visited[triangle.thirdNeigh] = True
-                toDeleteTriangles.add(triangle.thirdNeigh)
-                Q.append(triangle.thirdNeigh)
+                if triangle.thirdNeigh in visited and visited[triangle.thirdNeigh] is False:
+                    visited[triangle.thirdNeigh] = True
+                    toDeleteTriangles.add(triangle.thirdNeigh)
+                    Q.append(triangle.thirdNeigh)
 
-            if not triangle.thirdNeigh in visited:
-                visited[triangle.thirdNeigh] = True
-                toDeleteTriangles.add(triangle.thirdNeigh)
-                Q.append(triangle.thirdNeigh)
+                if not triangle.thirdNeigh in visited:
+                    visited[triangle.thirdNeigh] = True
+                    toDeleteTriangles.add(triangle.thirdNeigh)
+                    Q.append(triangle.thirdNeigh)
 
-        # potwarzam czystki
-        for triangle in toDeleteTriangles:
-            if triangle in triangleToDetector:
-                triangleToDetector.remove(triangle)
+            # potwarzam czystki
+            for triangle in toDeleteTriangles:
+                if triangle in triangleToDetector:
+                    triangleToDetector.remove(triangle)
 
 
-def delunay(polygon: list):
+def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
     """
     Funkcja oblicza triangulacji Delunay'a
     :param polygon: tablica krotek punktów na płaszczyźnie euklidesowej podanych przeciwnie do ruchu wskazówek zegara - nasz wielokąt
