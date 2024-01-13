@@ -579,6 +579,29 @@ def whetherCutAnyEdge(edgesSet: set[tuple[Point,Point]], edge: tuple[Point,Point
 
     return False
 
+def updateCut(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangleFirst: Triangle, triangleSecond: Triangle):
+    """
+    Funkcja aktualizujaca przeciecia krawedzi poprzez dodanie dwoch nowych trojkatow
+    :return:
+    """
+    for edge in cuttersMap.keys():
+        if isCut(triangleFirst, edge):
+            cuttersMap[edge].append(triangleFirst)
+
+        if isCut(triangleSecond, edge):
+            cuttersMap[edge].append(triangleSecond)
+
+
+def deleteTriangle(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangle: Triangle):
+    """
+    Funkcja usuwa dla danego trojkat z cuttersMap, czyli dla kadej kraedzi ktora przecinal trzeba go usunac
+    :return:
+    """
+    for edge in cuttersMap.keys():
+        triangleList = cuttersMap[edge]
+        if triangle in triangleList:
+            triangleList.remove(triangle)
+
 
 def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], triangleToDetector: set[Triangle],
                        edgesSet: set[tuple[Point,Point]]):
@@ -800,27 +823,20 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                                     if whichNeighWeAre == 3:
                                         triangle.firstNeigh.thirdNeigh.thirdNeigh = triangleSecond
 
+                            if triangle in triangleToDetector:
+                                triangleToDetector.remove(triangle)
+
                             if triangle.firstNeigh in triangleToDetector:
                                 triangleToDetector.remove(triangle.firstNeigh)
 
                             triangleToDetector.add(triangleFirst)
                             triangleToDetector.add(triangleSecond)
 
-                            if triangle.firstNeigh in cuttersMap[edge]:
-                                cuttersMap[edge].remove(triangle.firstNeigh)
+                            deleteTriangle(cuttersMap, triangle.firstNeigh)
+                            deleteTriangle(cuttersMap, triangle)
+                            updateCut(cuttersMap, triangleFirst, triangleSecond)
 
-                            if triangle in triangleToDetector:
-                                triangleToDetector.remove(triangle)
 
-                            if triangle in cuttersMap[edge]:
-                                cuttersMap[edge].remove(triangle)
-
-                            # znaczy ze nowy trojkat przecina nam krawedz
-                            if isCut(triangleFirst, edge):
-                                cuttersMap[edge].append(triangleFirst)
-
-                            if isCut(triangleSecond, edge):
-                                cuttersMap[edge].append(triangleSecond)
 
                 elif triangle.secondNeigh in cuttersMap[edge]:
 
@@ -1030,24 +1046,16 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                             if triangle.secondNeigh in triangleToDetector:
                                 triangleToDetector.remove(triangle.secondNeigh)
 
-                            triangleToDetector.add(triangleFirst)
-                            triangleToDetector.add(triangleSecond)
-
-                            if triangle.secondNeigh in cuttersMap[edge]:
-                                cuttersMap[edge].remove(triangle.secondNeigh)
-
                             if triangle in triangleToDetector:
                                 triangleToDetector.remove(triangle)
 
-                            if triangle in cuttersMap[edge]:
-                                cuttersMap[edge].remove(triangle)
+                            triangleToDetector.add(triangleFirst)
+                            triangleToDetector.add(triangleSecond)
 
-                            # znaczy ze nowy trojkat przecina nam krawedz
-                            if isCut(triangleFirst, edge):
-                                cuttersMap[edge].append(triangleFirst)
+                            deleteTriangle(cuttersMap, triangle.secondNeigh)
+                            deleteTriangle(cuttersMap, triangle)
+                            updateCut(cuttersMap, triangleFirst, triangleSecond)
 
-                            if isCut(triangleSecond, edge):
-                                cuttersMap[edge].append(triangleSecond)
 
                 elif triangle.thirdNeigh in cuttersMap[edge]:
 
@@ -1254,27 +1262,18 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                                     if whichNeighWeAre == 3:
                                         triangle.thirdNeigh.thirdNeigh.thirdNeigh = triangleSecond
 
+                            if triangle in triangleToDetector:
+                                triangleToDetector.remove(triangle)
+
                             if triangle.thirdNeigh in triangleToDetector:
                                 triangleToDetector.remove(triangle.thirdNeigh)
 
                             triangleToDetector.add(triangleFirst)
                             triangleToDetector.add(triangleSecond)
 
-                            if triangle.thirdNeigh in cuttersMap[edge]:
-                                cuttersMap[edge].remove(triangle.thirdNeigh)
-
-                            if triangle in triangleToDetector:
-                                triangleToDetector.remove(triangle)
-
-                            if triangle in cuttersMap[edge]:
-                                cuttersMap[edge].remove(triangle)
-
-                            # znaczy ze nowy trojkat przecina nam krawedz
-                            if isCut(triangleFirst, edge):
-                                cuttersMap[edge].append(triangleFirst)
-
-                            if isCut(triangleSecond, edge):
-                                cuttersMap[edge].append(triangleSecond)
+                            deleteTriangle(cuttersMap, triangle.thirdNeigh)
+                            deleteTriangle(cuttersMap, triangle)
+                            updateCut(cuttersMap, triangleFirst, triangleSecond)
 
     return triangleToDetector
 
@@ -1313,10 +1312,7 @@ def delunay(polygon: list):
     triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
     cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
     #printCutterMap(cutterMap)
-    convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
-
-    # cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-    # convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
+    #convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
