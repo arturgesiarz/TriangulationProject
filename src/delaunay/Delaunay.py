@@ -58,8 +58,10 @@ def extremePoints(polygon):
     left_bottom_point = Point(x_min - 2 * max(a, b), y_min - min(a, b), n)
     right_bottom_point = Point(x_max + 2 * max(a, b), y_min - min(a, b), n + 1)
 
-    left_upper_rectangular_point = Point(x_min,y_max)  # lewy gory wierzcholek prostokata - nie daje tym punktom indeksow ponieaz sa tymczasowe
-    right_upper_rectangular_point = Point(x_max, y_max)  # prawy gorny wierzcholek prostokata
+    to_add = abs(right_bottom_point.x - x_max) * 0.05
+
+    left_upper_rectangular_point = Point(x_min - to_add,y_max)  # lewy gory wierzcholek prostokata - nie daje tym punktom indeksow ponieaz sa tymczasowe
+    right_upper_rectangular_point = Point(x_max + to_add, y_max)  # prawy gorny wierzcholek prostokata
 
     leftLine = LineFunction(left_bottom_point, left_upper_rectangular_point)
     rightLine = LineFunction(right_bottom_point, right_upper_rectangular_point)
@@ -618,7 +620,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
             while len(cuttersMap[edge]) > 0:
                 triangle = cuttersMap[edge][0]  # wyciagam pierwszy element z mapy
 
-                if triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
+                if triangle.firstNeigh is not None and triangle.firstNeigh in cuttersMap[edge]:  # znajduje sasiada z ktrorym mam sie zamienic przekatna
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.firstNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
@@ -835,7 +837,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                             deleteTriangle(cuttersMap, triangle)
                             updateCut(cuttersMap, triangleFirst, triangleSecond)
 
-                elif triangle.secondNeigh in cuttersMap[edge]:
+                elif triangle.secondNeigh is not None and triangle.secondNeigh in cuttersMap[edge]:
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.secondNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
@@ -1052,7 +1054,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
                             deleteTriangle(cuttersMap, triangle)
                             updateCut(cuttersMap, triangleFirst, triangleSecond)
 
-                elif triangle.thirdNeigh in cuttersMap[edge]:
+                elif triangle.thirdNeigh is not None and triangle.thirdNeigh in cuttersMap[edge]:
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.thirdNeigh)
 
                     if trianglePointFirst is not None and trianglePointSecond is not None:
@@ -1307,34 +1309,23 @@ def delunay(polygon: list):
                 triangleMap = bfsTriangleEdgeRemover(triangleMap, triangleFind, pointTab[i], triangleSearchMap,zeroTriangle)  # aktualizuje stan trojkatow
 
 
-    triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
+    # triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
+    triangleToDetector = triangleMap
     cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-    # printCutterMap(cutterMap)
     convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
+    triangleToDetector = deletedBorder(triangleMap, zeroTriangle)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
 if __name__ == '__main__':
-
-    # dla wersji podstawowej testow
-    # for polygon in Testy:
-    #     vis = Visualizer()
-    #     solEdges = delunay(polygon)
-    #     vis.add_polygon(polygon)
-    #     vis.add_line_segment(solEdges, color = "black")
-    #     vis.show()
-
     # dla wersji rozszrzeonej testow
     for test in Testy:
         for polygon in test:
             vis = Visualizer()
             solEdges = delunay(polygon)
-            vis.add_polygon(polygon)
-            vis.add_line_segment(solEdges, color = "black")
-            vis.show()
 
-    # triangle = Triangle(Point(1,1), Point(3,0), Point(3,2))
-    # edge1 = (Point(3, 0), Point(3, 2))
-    # edge2 = (Point(4.5,2), Point(3,2))
-    # # print(isCut(triangle, edge1))
-    # print(is_intersection_between_two_points(edge1, edge2))
+            vis.add_polygon(polygon)
+            vis.add_point(polygon, color = "blue")
+            vis.add_line_segment(solEdges, color = "black")
+
+            vis.show()
