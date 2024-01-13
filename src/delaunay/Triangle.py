@@ -11,6 +11,28 @@ class Triangle:
         self.secondNeigh = None  # prawy sasiad
         self.thirdNeigh = None  # trzeci somsiad
 
+    def sortPointByEdge(self, edge):
+        """
+        Metoda sortujaca punkty trojkata po glownej krawedzi
+        :return:
+        """
+        aPrim = self.a
+        bPrim = self.b
+        cPrim = self.c
+
+        self.a = edge[0]
+        self.b = edge[1]
+
+        if aPrim != edge[0] and aPrim != edge[1]:
+            self.c = aPrim
+
+        elif bPrim != edge[0] and bPrim != edge[1]:
+            self.c = bPrim
+
+        elif cPrim != edge[0] and cPrim != edge[1]:
+            self.c = cPrim
+
+
     def whetherEdgesBelongToThisTriangle(self, edge):
         """
         Metoda sprawdza czy dana krawedz nalezy do tego trojkata

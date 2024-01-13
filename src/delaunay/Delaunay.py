@@ -20,6 +20,8 @@ from src.delaunay.Point import Point
 from src.delaunay.Triangle import Triangle
 from collections import deque
 
+from copy import deepcopy
+
 # testy podstawowe
 # from src.testy.Tests import Testy
 
@@ -1288,9 +1290,6 @@ def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,
     Funkcja wyznacza odpowiednie trojkaty, ktore sa brzegowe.
     :return:
     """
-    for edge in edgesSet:
-        pass
-    pass
 
 def delunay(polygon: list):
     """
@@ -1323,21 +1322,19 @@ def delunay(polygon: list):
     convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
     triangleToDetector = deletedBorder(triangleMap, zeroTriangle)
 
+    # selectTriangle(triangleToDetector, edgesSet)
+
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
 if __name__ == '__main__':
     # dla wersji rozszrzeonej testow
-    # for test in Testy:
-    #     for polygon in test:
-    #         vis = Visualizer()
-    #         solEdges = delunay(polygon)
-    #
-    #         vis.add_polygon(polygon)
-    #         vis.add_point(polygon, color = "blue")
-    #         vis.add_line_segment(solEdges, color = "black")
-    #
-    #         vis.show()
-    x = (Point(1,2),Point(5,3))
-    y = (Point(1,2),Point(5,5))
-    if x == y:
-        print("DUPA")
+    for test in Testy:
+        for polygon in test:
+            vis = Visualizer()
+            solEdges = delunay(polygon)
+
+            vis.add_polygon(polygon)
+            vis.add_point(polygon, color = "blue")
+            vis.add_line_segment(solEdges, color = "black")
+
+            vis.show()
