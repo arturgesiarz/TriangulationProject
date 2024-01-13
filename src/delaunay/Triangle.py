@@ -11,6 +11,20 @@ class Triangle:
         self.secondNeigh = None  # prawy sasiad
         self.thirdNeigh = None  # trzeci somsiad
 
+    def whetherEdgesBelongToThisTriangle(self, edge):
+        """
+        Metoda sprawdza czy dana krawedz nalezy do tego trojkata
+        :return:
+        """
+        edgeCheck = (min(edge[0],edge[1]), max(edge[0],edge[1]))
+        edgeAB = (min(self.a, self.b), max(self.a, self.b))
+        edgeBC = (min(self.b, self.c), max(self.b, self.c))
+        edgeAC = (min(self.a, self.c), max(self.a, self.c))
+
+        if edgeCheck == edgeAB or edgeCheck == edgeBC or edgeCheck == edgeAC:
+            return True
+        return False
+
     def findNewDiagonal(self, other):
         """
         Funkcja znajduje nowa przekatna pomiedzy dwoma polaczonymi trojkatami, o ile sie da to zrobic
