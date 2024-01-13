@@ -483,32 +483,47 @@ def printSolution(listEdges, polygon):
     #vis.show()
     return vis
 
+
+def mat_det_2x2(a: Point, b: Point, c: Point): #wyznacznik 2x2
+    return (a.x-c.x)*(b.y-c.y)-(a.y-c.y)*(b.x-c.x)
+
+
+def get_orientation(actuall_orientation):
+    if actuall_orientation > 0: return 1
+    elif actuall_orientation < 0: return -1
+    return 0
+
+
+def whetherTwoEdgesCut(edgeA: tuple[Point, Point], edgeB: tuple[Point, Point]):
+
+    if edgeA[0] == edgeB[0] or edgeA[0] == edgeB[1] or edgeA[1] == edgeB[0] or edgeA[1] == edgeB[1]: return False
+
+    o1 = get_orientation(mat_det_2x2(edgeA[0],edgeA[1],edgeB[0]))
+    o2 = get_orientation(mat_det_2x2(edgeA[0],edgeA[1],edgeB[1]))
+
+    o3 = get_orientation(mat_det_2x2(edgeB[0],edgeB[1],edgeA[0]))
+    o4 = get_orientation(mat_det_2x2(edgeB[0],edgeB[1],edgeA[1]))
+
+    if o1 != o2 and o3 != o4:
+        return True
+
+    return False
+
+
 def isCut(triangle: Triangle, edge: tuple[Point,Point]):
     """
     Funkcja odpowiada na pytania czy dany trojkat, przecina dana krawedz.
     Funkcja ta bedzie pomocna przy procedurze odzyskiwania krawedzi
     :return: True/False w zaleznosci czy dany punkt przecina dana krawedz
     """
-    edgeLine = LineFunction(edge[0], edge[1])  # tworze funkcje liniowa
+    edgeAB = (triangle.a, triangle.b)
+    edgeAC = (triangle.a, triangle.c)
+    edgeBC = (triangle.b, triangle.c)
 
-    trianAB = LineFunction(triangle.a, triangle.b)
-    trianBC = LineFunction(triangle.b, triangle.c)
-    trianAC = LineFunction(triangle.a, triangle.c)
-
-    # znajduje przeciecia danych prostych ze soba
-    intersectAB = edgeLine.findIntersection(trianAB)
-    intersectAC = edgeLine.findIntersection(trianAC)
-    intersectBC = edgeLine.findIntersection(trianBC)
-
-    if intersectAB is not None and trianAB.maxX > intersectAB > trianAB.minX:
+    if whetherTwoEdgesCut(edgeAB, edge) or \
+            whetherTwoEdgesCut(edgeAC, edge) or \
+            whetherTwoEdgesCut(edgeBC, edge):
         return True
-
-    if intersectAC is not None and trianAC.maxX > intersectAC > trianAC.minX:
-        return True
-
-    if intersectBC is not None and trianBC.maxX > intersectBC > trianBC.minX:
-        return True
-
     return False
 
 def createSetEdges(pointTab: list[Point]):
@@ -550,25 +565,25 @@ def findCuttersEdges(edgesSet: set[tuple[Point,Point]], triangleToDetector: set[
     return cuttersMap
 
 
-def whetherTwoEdgesCut(edge1: tuple[Point, Point], edge2: tuple[Point, Point]):
-    """
-    Funkcja sprawdza czy dwa odcinki sie przecinanaj czy tez, nie.
-    :param edge1: Odcinek pierwszy
-    :param edge2: Odcinek drugi
-    :return: True jesli odcinki sie przeciaja, False jesli sie nie przecianaja
-    """
-    function1 = LineFunction(edge1[0], edge1[1])
-    function2 = LineFunction(edge2[0], edge2[1])
-
-    intersectBetweenTwoFunc = function1.findIntersection(function2)
-
-    if intersectBetweenTwoFunc is not None:
-        # przypadek, kiedy jeden z odcinkow jest pionowy, to zawsze drugi nie moze byc pionowy, ponieaz przeciecie istenieje
-        if function1.vertical and function2.maxX > intersectBetweenTwoFunc > function2.minX:
-            return True
-        if function2.vertical and function1.maxX > intersectBetweenTwoFunc > function1.minX:
-            return True
-    return False
+# def whetherTwoEdgesCut(edge1: tuple[Point, Point], edge2: tuple[Point, Point]):
+#     """
+#     Funkcja sprawdza czy dwa odcinki sie przecinanaj czy tez, nie.
+#     :param edge1: Odcinek pierwszy
+#     :param edge2: Odcinek drugi
+#     :return: True jesli odcinki sie przeciaja, False jesli sie nie przecianaja
+#     """
+#     function1 = LineFunction(edge1[0], edge1[1])
+#     function2 = LineFunction(edge2[0], edge2[1])
+#
+#     intersectBetweenTwoFunc = function1.findIntersection(function2)
+#
+#     if intersectBetweenTwoFunc is not None:
+#         # przypadek, kiedy jeden z odcinkow jest pionowy, to zawsze drugi nie moze byc pionowy, ponieaz przeciecie istenieje
+#         if function1.vertical and function2.maxX > intersectBetweenTwoFunc > function2.minX:
+#             return True
+#         if function2.vertical and function1.maxX > intersectBetweenTwoFunc > function1.minX:
+#             return True
+#     return False
 
 
 def whetherCutAnyEdge(edgesSet: set[tuple[Point,Point]], edge: tuple[Point,Point]):
@@ -811,7 +826,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], tria
                             cuttersMap[edge].remove(triangle)
                             cuttersMap[edge].remove(triangle.firstNeigh)
 
-                if triangle.secondNeigh in cuttersMap[edge]:
+                elif triangle.secondNeigh in cuttersMap[edge]:
 
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.secondNeigh)
 
@@ -1023,7 +1038,7 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], tria
                             cuttersMap[edge].remove(triangle)
                             cuttersMap[edge].remove(triangle.secondNeigh)
 
-                if triangle.thirdNeigh in cuttersMap[edge]:
+                elif triangle.thirdNeigh in cuttersMap[edge]:
 
                     trianglePointFirst, trianglePointSecond = triangle.findNewDiagonal(triangle.thirdNeigh)
 
@@ -1237,6 +1252,10 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], set[Triangle]], tria
 
     return triangleToDetector
 
+def printCutterMap(cutterMap: dict[tuple[Point,Point], set[Triangle]]):
+    for edge in cutterMap.keys():
+        print(f"{edge[0]},{edge[1]}: {len(cutterMap[edge])}")
+
 
 def delunay(polygon: list):
     """
@@ -1265,8 +1284,8 @@ def delunay(polygon: list):
 
     triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
     cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
-
-    triangleToDetector = convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
+    printCutterMap(cutterMap)
+    # triangleToDetector = convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
 
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
 
@@ -1281,18 +1300,16 @@ if __name__ == '__main__':
     #     vis.show()
 
     # dla wersji rozszrzeonej testow
-    # for test in Testy:
-    #     for polygon in test:
-    #         vis = Visualizer()
-    #         solEdges = delunay(polygon)
-    #         vis.add_polygon(polygon)
-    #         vis.add_line_segment(solEdges, color = "black")
-    #         vis.show()
+    for test in Testy:
+        for polygon in test:
+            vis = Visualizer()
+            solEdges = delunay(polygon)
+            vis.add_polygon(polygon)
+            vis.add_line_segment(solEdges, color = "black")
+            vis.show()
 
-    # triangle = Triangle(Point(4, 1),Point(4, 4),Point(7, 1))
-    # edge = (Point(6, 5),Point(6, 0))
-    #print(isCut(triangle, edge))
-
-    edge1 = (Point(1,1), Point(1,3))
-    edge2 = (Point(1/2,2), Point(2,2))
-    print(whetherTwoEdgesCut(edge1,edge2))
+    # triangle = Triangle(Point(1,1), Point(3,0), Point(3,2))
+    # edge1 = (Point(3, 0), Point(3, 2))
+    # edge2 = (Point(4.5,2), Point(3,2))
+    # # print(isCut(triangle, edge1))
+    # print(is_intersection_between_two_points(edge1, edge2))
