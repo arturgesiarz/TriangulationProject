@@ -363,6 +363,38 @@ def findPointInTriangle(triangleMap, point: Point):  # O(n)
             return triangle
     return None
 
+def betterFindPoint(triangleMap: set[Triangle], point: Point):
+    """
+    Funkcja znajduja trojkat, w ktorym jest dany puntk, robicia to lepiej niz przegladanie kazdego punktu
+    :return:
+    """
+    visited = iniclizationVisited(triangleMap)
+    Q = deque()
+
+    lastTriangle = list(triangleMap)[0]
+
+    Q.append(lastTriangle)
+    visited[lastTriangle] = True
+
+    while len(Q) > 0:
+        v = Q.popleft()
+
+        if point.doesPointBelongToThisTriangle(v):
+            return v
+
+        if v.firstNeigh is not None and v.firstNeigh in visited and visited[v.firstNeigh] is False:
+            visited[v.firstNeigh] = True
+            Q.append(v.firstNeigh)
+
+        if v.secondNeigh is not None and v.secondNeigh in visited and visited[v.secondNeigh] is False:
+            visited[v.secondNeigh] = True
+            Q.append(v.secondNeigh)
+
+        if v.thirdNeigh is not None and v.thirdNeigh in visited and visited[v.thirdNeigh] is False:
+            visited[v.thirdNeigh] = True
+            Q.append(v.thirdNeigh)
+
+    return None
 
 def inicializeWithStartTriangle(pointTab, zeroTriangle):
     """
@@ -1375,7 +1407,8 @@ def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
     triangleMap = inicializeWithStartTriangle(pointTab,zeroTriangle)  # mapa aktualnie znajdujacych sie trojkatow w triangulacji
 
     for i in range(1, n):  # przegladam nasze kolejne punkty
-        triangleFind = findPointInTriangle(triangleMap, pointTab[i])
+        triangleFind = betterFindPoint(triangleMap, pointTab[i])
+
         if triangleFind is not None:
             triangleSearchMap = bfsTriangleSearcherMapCreator(triangleMap, triangleFind, pointTab[i])  # znajduje wszystkie trojkaty do ktorych moge isc
             if len(triangleSearchMap) == 1:  # przypadek w ktorym tylko mamy do czynienia z jednym trojkatem
