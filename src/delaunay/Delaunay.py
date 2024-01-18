@@ -350,52 +350,6 @@ def updateNeighOfTheTriangles(newTriangles: set[Triangle]):  # O(n)
                             triangleA.thirdNeigh = triangleB
                     # w druga strone nie sprawdzam poniewaz i tak petla natrafie na taki przypadek
 
-
-def findPointInTriangle(triangleMap, point: Point):  # O(n)
-    """
-    Funkcja znajduje trojkat w ktroym znajduje sie dany punkt
-    :param triangleMap: Mapa obiektow klasy Trinalge
-    :param point: Punkt w na ukladzie kartezianskim R^2
-    :return: Obiekt klasy Triangle w ktorym znajduje sie dany punkt
-    """
-    for triangle in triangleMap:
-        if point.doesPointBelongToThisTriangle(triangle):
-            return triangle
-    return None
-
-def betterFindPoint(triangleMap: set[Triangle], point: Point):
-    """
-    Funkcja znajduja trojkat, w ktorym jest dany puntk, robicia to lepiej niz przegladanie kazdego punktu
-    :return:
-    """
-    visited = iniclizationVisited(triangleMap)
-    Q = deque()
-
-    lastTriangle = list(triangleMap)[0]
-
-    Q.append(lastTriangle)
-    visited[lastTriangle] = True
-
-    while len(Q) > 0:
-        v = Q.popleft()
-
-        if point.doesPointBelongToThisTriangle(v):
-            return v
-
-        if v.firstNeigh is not None and v.firstNeigh in visited and visited[v.firstNeigh] is False:
-            visited[v.firstNeigh] = True
-            Q.append(v.firstNeigh)
-
-        if v.secondNeigh is not None and v.secondNeigh in visited and visited[v.secondNeigh] is False:
-            visited[v.secondNeigh] = True
-            Q.append(v.secondNeigh)
-
-        if v.thirdNeigh is not None and v.thirdNeigh in visited and visited[v.thirdNeigh] is False:
-            visited[v.thirdNeigh] = True
-            Q.append(v.thirdNeigh)
-
-    return None
-
 def dfsFindPoint(triangleMap: set[Triangle], point: Point):
     """
     Funkcja znjadujaca trojkat na ktorym lezy nasz punkt algortem DFS, ale w kolejnosci odpowiedniej dlugosci
@@ -1498,7 +1452,7 @@ def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
     triangleMap = inicializeWithStartTriangle(pointTab,zeroTriangle)  # mapa aktualnie znajdujacych sie trojkatow w triangulacji
 
     for i in range(1, n):  # przegladam nasze kolejne punkty
-        triangleFind = betterFindPoint(triangleMap, pointTab[i])
+        triangleFind = dfsFindPoint(triangleMap, pointTab[i])
 
         if triangleFind is not None:
             triangleSearchMap = bfsTriangleSearcherMapCreator(triangleMap, triangleFind, pointTab[i])  # znajduje wszystkie trojkaty do ktorych moge isc
@@ -1508,7 +1462,6 @@ def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
                 triangleMap = bfsTriangleEdgeRemover(triangleMap, triangleFind, pointTab[i], triangleSearchMap,zeroTriangle)  # aktualizuje stan trojkatow
 
 
-    # triangleToDetector = deletedBorder(triangleMap,zeroTriangle)  # usuwam wszystkie trojkaty incydente z trojkątem głównym
     triangleToDetector = triangleMap
     cutterMap = findCuttersEdges(edgesSet, triangleToDetector)
     convertCuttersEdge(cutterMap, triangleToDetector, edgesSet)
@@ -1531,6 +1484,6 @@ if __name__ == '__main__':
             vis.add_line_segment(solEdges, color = "black")
 
             vis.show()
-            vis.save(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/plots/test_{no_tests}")
+            #vis.save(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/plots/test_{no_tests}")
 
             no_tests += 1
