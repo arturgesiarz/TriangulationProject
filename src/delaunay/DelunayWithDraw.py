@@ -1163,6 +1163,8 @@ def dfsFindPoint_draw(triangleMap: set[Triangle], point: Point, visDelunay, E, G
         E.append(something)
         G.append(something)
 
+        visited[triangle] = True
+
         if point.doesPointBelongToThisTriangle(triangle):
             visDelunay.remove_figure(G.pop())
 
@@ -1181,8 +1183,6 @@ def dfsFindPoint_draw(triangleMap: set[Triangle], point: Point, visDelunay, E, G
         if not found:
 
             visDelunay.remove_figure(G.pop())
-
-            visited[triangle] = True
 
             minimumPoint = None
             miniumDistance = None
@@ -1222,22 +1222,22 @@ def dfsFindPoint_draw(triangleMap: set[Triangle], point: Point, visDelunay, E, G
                 else:
                     who_started = 3
 
-            if who_started == 1:
+            if who_started == 1 and not found:
                 dfsVisit(triangleMap, triangle.firstNeigh)
 
-            if who_started == 2:
+            if who_started == 2 and not found:
                 dfsVisit(triangleMap, triangle.secondNeigh)
 
-            if who_started == 3:
+            if who_started == 3 and not found:
                 dfsVisit(triangleMap, triangle.thirdNeigh)
 
-            if triangle.firstNeigh is not None and visited[triangle.firstNeigh] is False:
+            if triangle.firstNeigh is not None and visited[triangle.firstNeigh] is False and not found:
                 dfsVisit(triangleMap, triangle.firstNeigh)
 
-            if triangle.secondNeigh is not None and visited[triangle.secondNeigh] is False:
+            if triangle.secondNeigh is not None and visited[triangle.secondNeigh] is False and not found:
                 dfsVisit(triangleMap, triangle.secondNeigh)
 
-            if triangle.thirdNeigh is not None and visited[triangle.thirdNeigh] is False:
+            if triangle.thirdNeigh is not None and visited[triangle.thirdNeigh] is False and not found:
                 dfsVisit(triangleMap, triangle.thirdNeigh)
 
     dfsStart(triangleMap)
@@ -1281,7 +1281,7 @@ def deletedBorder(triangleMap: set[Triangle], zeroTriangle: Triangle):
             triagleSol.add(triangle)
 
     return triagleSol
-def createSetEdges(pointTab: list[Point]):
+def createSetEdges_draw(pointTab: list[Point], visDelone):
     """
     Funkcja dla poczatkowego zbioru punktow, tworzy poczatkowy zbior krawedzi.
     :param pointTab:
@@ -1289,15 +1289,26 @@ def createSetEdges(pointTab: list[Point]):
     """
     n = len(pointTab)
     edgesSet = set()  # zbior krawedzi
+    edges = []
 
     for i in range(n - 1):
         point1 = pointTab[i]
         point2 = pointTab[i + 1]
+
+        edge = ((point1.x, point1.y), (point2.x, point2.y))
+        edges.append(edge)
+
         edgesSet.add((point1, point2))
 
     point1 = pointTab[-1]
     point2 = pointTab[0]
+
+    edge = ((point1.x, point1.y), (point2.x, point2.y))
+    edges.append(edge)
+
     edgesSet.add((point1, point2))
+
+    visDelone.add_line_segment(edges, color="brown")
 
     return edgesSet
 def mat_det_2x2(a: Point, b: Point, c: Point): #wyznacznik 2x2
@@ -1418,6 +1429,83 @@ def printSolution(listEdges, polygon):
     vis.add_point(polygon, color = "blue")
     vis.show()
 
+def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,Point]] ):
+    """
+    Funkcja wyznacza odpowiednie trojkaty, ktore sa brzegowe.
+    :return:
+    """
+    toDeleteTriangles = set()  # zbior trojkatow do usuniecia
+    borderTriangles = set()  # zbior brzegowych trojkatow
+    for edge in edgesSet:
+        for triangle in triangleToDetector:
+            # sprawdzam czy dana krawedz jest boczna a natepnie czy, trojkat jest prawidlowy
+            if triangle.whetherEdgesBelongToThisTriangle(edge):
+                if not triangle.checkTriangleCorrect(edge):
+                    toDeleteTriangles.add(triangle)
+                else:
+                    borderTriangles.add(triangle)
+
+    # usuwam z glownego zbioru trojkaty ktore nie spelniaja wymogow
+    for triangle in toDeleteTriangles:
+        triangleToDetector.remove(triangle)
+
+    if len(toDeleteTriangles) > 0:
+        visited = iniclizationVisited(toDeleteTriangles)
+        v = toDeleteTriangles.pop()
+
+        Q = deque()
+        Q.append(v)
+
+        visited[v] = True
+
+        while len(Q) > 0:
+            triangle = Q.popleft()
+
+            if triangle.firstNeigh is not None and not triangle.firstNeigh in borderTriangles:
+
+                if triangle.firstNeigh in visited and visited[triangle.firstNeigh] is False:
+                    visited[triangle.firstNeigh] = True
+                    toDeleteTriangles.add(triangle.firstNeigh)
+                    Q.append(triangle.firstNeigh)
+
+                if not triangle.firstNeigh in visited:
+                    visited[triangle.firstNeigh] = True
+                    toDeleteTriangles.add(triangle.firstNeigh)
+                    Q.append(triangle.firstNeigh)
+
+            if triangle.secondNeigh is not None and not triangle.secondNeigh in borderTriangles:
+
+                if triangle.secondNeigh in visited and visited[triangle.secondNeigh] is False:
+                    visited[triangle.secondNeigh] = True
+                    toDeleteTriangles.add(triangle.secondNeigh)
+                    Q.append(triangle.secondNeigh)
+
+                if not triangle.secondNeigh in visited:
+                    visited[triangle.secondNeigh] = True
+                    toDeleteTriangles.add(triangle.secondNeigh)
+                    Q.append(triangle.secondNeigh)
+
+            if triangle.thirdNeigh is not None and not triangle.thirdNeigh in borderTriangles:
+
+                if triangle.thirdNeigh in visited and visited[triangle.thirdNeigh] is False:
+                    visited[triangle.thirdNeigh] = True
+                    toDeleteTriangles.add(triangle.thirdNeigh)
+                    Q.append(triangle.thirdNeigh)
+
+                if not triangle.thirdNeigh in visited:
+                    visited[triangle.thirdNeigh] = True
+                    toDeleteTriangles.add(triangle.thirdNeigh)
+                    Q.append(triangle.thirdNeigh)
+
+            # potwarzam czystki
+            for triangle in toDeleteTriangles:
+                if triangle in triangleToDetector:
+                    triangleToDetector.remove(triangle)
+
+
+
+
+
 
 def delunay_draw(polygon: list):
     """
@@ -1439,7 +1527,9 @@ def delunay_draw(polygon: list):
     zeroTriangle = extremePoints(polygon)  # nastepuje znalezienie trojkata, ktory obejmuje wszystkie punkty
 
     pointTab = createPointTab(polygon)
-    edgesSet = createSetEdges(pointTab)
+
+    # tworze zbior krawedzi razem z wizualizacja
+    edgesSet = createSetEdges_draw(pointTab, visDelunay)
 
     triangleMap = inicializeWithStartTriangle(pointTab,zeroTriangle)  # mapa aktualnie znajdujacych sie trojkatow w triangulacji
 
@@ -1476,26 +1566,31 @@ def delunay_draw(polygon: list):
     printTriangles(triangleMap, visDelunay, E, D)
 
     # usuwam obramowania
-    triangleSol = deletedBorder(triangleMap,zeroTriangle)
+    triangleToDetector = deletedBorder(triangleMap,zeroTriangle)
 
     visDelunay.remove_figure(D.pop())
-    printTriangles(triangleSol, visDelunay, E, D)
+    printTriangles(triangleToDetector, visDelunay, E, D)
 
-    return createListEdges(createSetEdgesToPrintAll(triangleSol)), visDelunay
+    # usuwam pozostale trojkaty, ktore nie naleza do figury
+    selectTriangle(triangleToDetector, edgesSet)
+
+    visDelunay.remove_figure(D.pop())
+    printTriangles(triangleToDetector, visDelunay, E, D)
+
+    return createListEdges(createSetEdgesToPrintAll(triangleToDetector)), visDelunay
 
 if __name__ == '__main__':
     # dla wersji rozszrzeonej testow
     no_tests = 1
-    for test in t_to_show_gifs:
-        for polygon in test:
-            vis = Visualizer()
-            solEdges, visDelunay = delunay_draw(polygon)
+    for polygon in t_to_show_gifs:
+        vis = Visualizer()
+        solEdges, visDelunay = delunay_draw(polygon)
 
-            vis.add_polygon(polygon)
-            vis.add_point(polygon, color = "blue")
-            vis.add_line_segment(solEdges, color = "black")
+        vis.add_polygon(polygon)
+        vis.add_point(polygon, color = "blue")
+        vis.add_line_segment(solEdges, color = "black")
 
-            vis.show()
-            visDelunay.save_gif(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/gifs/prezentacja_{no_tests}", interval = 400)
+        vis.show()
+        # visDelunay.save_gif(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/gifs/prezentacja_{no_tests}", interval = 100)
 
-            no_tests += 1
+        no_tests += 1
