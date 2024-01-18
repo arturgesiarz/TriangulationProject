@@ -14,13 +14,13 @@
     Kiedy wyznaczmy juz triangulacje tak napawde w tym momencie tylko dla chmury punktow musimy odzyskac krawedzie, ktore
     zostaly stracone.
 """
+from math import sqrt
 
 from src.delaunay.LineFunction import LineFunction
 from src.delaunay.Point import Point
 from src.delaunay.Triangle import Triangle
 from collections import deque
 
-from copy import deepcopy
 
 # testy podstawowe
 # from src.testy.Tests import Testy
@@ -395,6 +395,97 @@ def betterFindPoint(triangleMap: set[Triangle], point: Point):
             Q.append(v.thirdNeigh)
 
     return None
+
+def dfsFindPoint(triangleMap: set[Triangle], point: Point):
+    """
+    Funkcja znjadujaca trojkat na ktorym lezy nasz punkt algortem DFS, ale w kolejnosci odpowiedniej dlugosci
+    :param triangleMap:
+    :param point:
+    :return:
+    """
+    visited = iniclizationVisited(triangleMap)
+
+    found = False
+    searchedTriangle = None
+
+    def dfsStart(triangleMap: set[Triangle]):
+        for triangle in triangleMap:
+            if visited[triangle] is False:
+                dfsVisit(triangleMap, triangle)
+
+                if found:
+                    break
+
+    def dfsVisit(triangleMap: set[Triangle], triangle: Triangle):
+        nonlocal point, searchedTriangle, found
+
+        if point.doesPointBelongToThisTriangle(triangle):
+            searchedTriangle = triangle
+            found = True
+
+        if not found:
+
+            visited[triangle] = True
+
+            minimumPoint = None
+            miniumDistance = None
+            who_started = -1
+
+            if triangle.firstNeigh is not None and visited[triangle.firstNeigh] is False:
+                minimumPointAct = triangle.firstNeigh.findTheNearestPoint(point)
+                distanceAct = sqrt((minimumPointAct.x - point.x) ** 2 + (minimumPointAct.y - point.y) ** 2)
+
+                miniumDistance = distanceAct
+                minimumPoint = minimumPointAct
+                who_started = 1
+
+            if triangle.secondNeigh is not None and visited[triangle.secondNeigh] is False:
+                minimumPointAct = triangle.secondNeigh.findTheNearestPoint(point)
+                if minimumPoint is not None:
+                    distanceAct = sqrt((minimumPointAct.x - minimumPoint.x) ** 2 + (minimumPointAct.y - minimumPoint.y) ** 2)
+
+                    if distanceAct < miniumDistance:
+                        miniumDistance = distanceAct
+                        minimumPoint = minimumPointAct
+                        who_started = 2
+                else:
+                    distanceAct = sqrt((minimumPointAct.x - point.x) ** 2 + (minimumPointAct.y - point.y) ** 2)
+
+                    miniumDistance = distanceAct
+                    minimumPoint = minimumPointAct
+                    who_started = 2
+
+            if triangle.thirdNeigh is not None and visited[triangle.thirdNeigh] is False:
+                minimumPointAct = triangle.secondNeigh.findTheNearestPoint(point)
+                if minimumPoint is not None:
+                    distanceAct = sqrt((minimumPointAct.x - minimumPoint.x) ** 2 + (minimumPointAct.y - minimumPoint.y) ** 2)
+
+                    if distanceAct < miniumDistance:
+                        who_started = 3
+                else:
+                    who_started = 3
+
+            if who_started == 1:
+                dfsVisit(triangleMap, triangle.firstNeigh)
+
+            if who_started == 2:
+                dfsVisit(triangleMap, triangle.secondNeigh)
+
+            if who_started == 3:
+                dfsVisit(triangleMap, triangle.thirdNeigh)
+
+            if triangle.firstNeigh is not None and visited[triangle.firstNeigh] is False:
+                dfsVisit(triangleMap, triangle.firstNeigh)
+
+            if triangle.secondNeigh is not None and visited[triangle.secondNeigh] is False:
+                dfsVisit(triangleMap, triangle.secondNeigh)
+
+            if triangle.thirdNeigh is not None and visited[triangle.thirdNeigh] is False:
+                dfsVisit(triangleMap, triangle.thirdNeigh)
+
+    dfsStart(triangleMap)
+    return searchedTriangle
+
 
 def inicializeWithStartTriangle(pointTab, zeroTriangle):
     """

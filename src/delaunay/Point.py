@@ -11,6 +11,7 @@ class Point:
         self.y = y
         self.idPoint = idPoint
 
+
     def toNormalPoint(self):
         return self.x,self.y
 

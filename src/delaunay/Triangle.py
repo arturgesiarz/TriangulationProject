@@ -1,6 +1,7 @@
 """
     Klasa slzuzy do przechowywania szczegolnych infomracji o trojkatach
 """
+from math import sqrt
 
 class Triangle:
     def __init__(self, a, b, c):
@@ -10,6 +11,32 @@ class Triangle:
         self.firstNeigh = None  # lewy sasiad - inny trojkat z ktorym sasiaduje nasz trojkat
         self.secondNeigh = None  # prawy sasiad
         self.thirdNeigh = None  # trzeci somsiad
+
+    def findTheNearestPoint(self, d):
+        """
+        Metoda zwraca nam punkt ktory jest najblizej punktu d
+        :param d:
+        :return:
+        """
+        distanceAD = sqrt((self.a.x - d.x) ** 2 + (self.a.y - d.y) ** 2)
+        distanceBD = sqrt((self.b.x - d.x) ** 2 + (self.b.y - d.y) ** 2)
+        distanceCD = sqrt((self.c.x - d.x) ** 2 + (self.c.y - d.y) ** 2)
+
+        minimumDistance = float('inf')
+        minimumPoint = None
+
+        if distanceAD < minimumDistance:
+            minimumDistance = distanceAD
+            minimumPoint = self.a
+
+        if distanceBD < minimumDistance:
+            minimumDistance = distanceBD
+            minimumPoint = self.b
+
+        if distanceCD < minimumDistance:
+            minimumPoint = self.c
+
+        return minimumPoint
 
     @staticmethod
     def _mat_det_2x2(a, b, c):
