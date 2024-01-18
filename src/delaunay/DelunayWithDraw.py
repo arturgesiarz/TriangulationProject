@@ -1580,17 +1580,18 @@ def delunay_draw(polygon: list):
     return createListEdges(createSetEdgesToPrintAll(triangleToDetector)), visDelunay
 
 if __name__ == '__main__':
-    # dla wersji rozszrzeonej testow
-    no_tests = 1
-    for polygon in t_to_show_gifs:
-        vis = Visualizer()
-        solEdges, visDelunay = delunay_draw(polygon)
-
-        vis.add_polygon(polygon)
-        vis.add_point(polygon, color = "blue")
-        vis.add_line_segment(solEdges, color = "black")
-
-        vis.show()
-        # visDelunay.save_gif(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/gifs/prezentacja_{no_tests}", interval = 100)
-
-        no_tests += 1
+    pass
+    # # dla wersji rozszrzeonej testow
+    # no_tests = 1
+    # for polygon in t_to_show_gifs:
+    #     vis = Visualizer()
+    #     solEdges, visDelunay = delunay_draw(polygon)
+    #
+    #     vis.add_polygon(polygon)
+    #     vis.add_point(polygon, color = "blue")
+    #     vis.add_line_segment(solEdges, color = "black")
+    #
+    #     vis.show()
+    #     # visDelunay.save_gif(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/gifs/prezentacja_{no_tests}", interval = 100)
+    #
+    #     no_tests += 1
