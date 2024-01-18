@@ -12,8 +12,10 @@
         4. Wynikiem sa pozostale krawedzie.
 
     Kiedy wyznaczmy juz triangulacje tak napawde w tym momencie tylko dla chmury punktow musimy odzyskac krawedzie, ktore
-    zostaly stracone.
+    zostaly stracone, oraz usunac odpowiednie trojkaty ktore sa pomocnicze.
 """
+
+import os
 from math import sqrt
 
 from src.delaunay.LineFunction import LineFunction
@@ -479,22 +481,30 @@ def deletedBorder(triangleMap: set[Triangle], zeroTriangle: Triangle):
 
     return triagleSol
 
-def createSetEdgesToPrintAll(triagleSol: set[Triangle]):
+def createSetEdgesFromTriangles(triangleTab: list, pointTab: list[Point]):
     """
     Funkcja tworzy zbior krwawedzi ze wszystkich trojkatow obiektow Point
     :param triagleSol:
     :return:
     """
     edgesSet = set()
-    for triangle in triagleSol:
-        if not (triangle.a,triangle.b) in edgesSet and not (triangle.b,triangle.a) in edgesSet:
-            edgesSet.add((triangle.a,triangle.b))
+    for triangle in triangleTab:
+        pointIDA = triangle[0]
+        pointIDB = triangle[1]
+        pointIDC = triangle[2]
 
-        if not (triangle.a,triangle.c) in edgesSet and not (triangle.c,triangle.a) in edgesSet:
-            edgesSet.add((triangle.a,triangle.c))
+        pointA = pointTab[pointIDA]
+        pointB = pointTab[pointIDB]
+        pointC = pointTab[pointIDC]
 
-        if not (triangle.b, triangle.c) in edgesSet and not (triangle.c, triangle.b) in edgesSet:
-            edgesSet.add((triangle.b, triangle.c))
+        if not (pointA,pointB) in edgesSet and not (pointB,pointA)  in edgesSet:
+            edgesSet.add((pointA,pointB))
+
+        if not (pointA,pointC) in edgesSet and not (pointC,pointA) in edgesSet:
+            edgesSet.add((pointA,pointC))
+
+        if not (pointB,pointC) in edgesSet and not (pointC,pointB) in edgesSet:
+            edgesSet.add((pointB,pointC))
 
     return edgesSet
 
@@ -512,58 +522,6 @@ def createListEdges(edgesSet: set[(Point,Point)]):
         listEdges.append( ((point1.x,point1.y),(point2.x,point2.y)) )
 
     return listEdges
-
-
-def printTraianglesWithPoints(triangleMap: set[Triangle], polygon: list, actPoint):
-    vis = Visualizer()
-    lineSegments = []
-
-    for triangle in triangleMap:
-        segmentAB = ((triangle.a.x, triangle.a.y), (triangle.b.x, triangle.b.y))
-        segmentBC = ((triangle.b.x, triangle.b.y), (triangle.c.x, triangle.c.y))
-        segmentAC = ((triangle.a.x, triangle.a.y), (triangle.c.x, triangle.c.y))
-        lineSegments.append(segmentAB)
-        lineSegments.append(segmentBC)
-        lineSegments.append(segmentAC)
-
-    polygonCopy = deepcopy(polygon)
-    polygonCopy.remove(actPoint)
-
-    vis.add_point(polygonCopy, color = "blue")
-    vis.add_point(actPoint, color = "red")
-    vis.add_line_segment(lineSegments)
-
-    vis.show()
-
-def printTriangles(triangleMap: set[Triangle]):
-    vis = Visualizer()
-    lineSegments = []
-
-    for triangle in triangleMap:
-        segmentAB = ((triangle.a.x, triangle.a.y), (triangle.b.x, triangle.b.y))
-        segmentBC = ((triangle.b.x, triangle.b.y), (triangle.c.x, triangle.c.y))
-        segmentAC = ((triangle.a.x, triangle.a.y), (triangle.c.x, triangle.c.y))
-        lineSegments.append(segmentAB)
-        lineSegments.append(segmentBC)
-        lineSegments.append(segmentAC)
-
-    vis.add_line_segment(lineSegments, color = "green")
-    vis.show()
-
-
-def printSolution(listEdges, polygon):
-    """
-    Funkcja rysujaca nasza koncowa triangulacje
-    :param listEdges:
-    :param polygon: Lista punktow naszego wielokata
-    :return: Rysowanie naszego elementu
-    """
-    vis = Visualizer()
-    vis.add_line_segment(listEdges, color="black")
-    vis.add_point(polygon, color = "blue")
-    #vis.show()
-    return vis
-
 
 def mat_det_2x2(a: Point, b: Point, c: Point): #wyznacznik 2x2
     return (a.x-c.x)*(b.y-c.y)-(a.y-c.y)*(b.x-c.x)
@@ -1356,12 +1314,6 @@ def convertCuttersEdge(cuttersMap: dict[tuple[Point,Point], list[Triangle]], tri
 
     return triangleToDetector
 
-def printCutterMap(cutterMap: dict[tuple[Point,Point], set[Triangle]]):
-    for edge in cutterMap.keys():
-        print(f"{edge[0]},{edge[1]}: {len(cutterMap[edge])}")
-        for triangle in cutterMap[edge]:
-            print(triangle)
-
 def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,Point]] ):
     """
     Funkcja wyznacza odpowiednie trojkaty, ktore sa brzegowe.
@@ -1436,6 +1388,32 @@ def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,
                     triangleToDetector.remove(triangle)
 
 
+def triangleToList(triangles: set[Triangle]):
+    """
+    Funkcja zamienia wynik trojkatow odpowiednio na zbior ktorek (a,b,c), gdzie oznaczaja one zbior trojkatow
+    :return:
+    """
+    sol = []
+    for triangle in triangles:
+        sol.append((triangle.a.idPoint, triangle.b.idPoint, triangle.c.idPoint))
+    return sol
+
+def printTriangles(polygon, triangleList, pointTab, save = False):
+    vis = Visualizer()
+
+    solEdges = createListEdges(createSetEdgesFromTriangles(triangleList, pointTab))
+
+    vis.add_polygon(polygon)
+    vis.add_point(polygon, color="blue")
+    vis.add_line_segment(solEdges, color="black")
+
+    if save:
+        num_files = len(os.listdir(f"{os.getcwd()}/plots/Delone/"))
+        vis.save(f"{os.getcwd()}/plots/Delone/delone_{num_files + 1}")
+
+    vis.show()
+
+
 def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
     """
     Funkcja oblicza triangulacji Delunay'a
@@ -1469,21 +1447,16 @@ def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
 
     selectTriangle(triangleToDetector, edgesSet)
 
-    return createListEdges(createSetEdgesToPrintAll(triangleToDetector))
+    triangleList = triangleToList(triangleToDetector)
+    printTriangles(polygon, triangleList, pointTab, save = True)
+
+    return triangleList
+
 
 if __name__ == '__main__':
     # dla wersji rozszrzeonej testow
-    no_tests = 1
     for test in Testy:
         for polygon in test:
-            vis = Visualizer()
-            solEdges = delunay(polygon)
+            triangles = delunay(polygon)
+            print(triangles)
 
-            vis.add_polygon(polygon)
-            vis.add_point(polygon, color = "blue")
-            vis.add_line_segment(solEdges, color = "black")
-
-            vis.show()
-            #vis.save(f"/Users/arturgesiarz/Desktop/Algorytmy Geometryczne/projekt/plots/test_{no_tests}")
-
-            no_tests += 1
