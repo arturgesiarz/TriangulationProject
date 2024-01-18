@@ -1505,7 +1505,15 @@ def selectTriangle(triangleToDetector: set[Triangle], edgesSet: set[tuple[Point,
 
 
 
-
+def triangleToList(triangles: set[Triangle]):
+    """
+    Funkcja zamienia wynik trojkatow odpowiednio na zbior ktorek (a,b,c), gdzie oznaczaja one zbior trojkatow
+    :return:
+    """
+    sol = []
+    for triangle in triangles:
+        sol.append((triangle.a.idPoint, triangle.b.idPoint, triangle.c.idPoint))
+    return sol
 
 def delunay_draw(polygon: list):
     """
@@ -1577,7 +1585,9 @@ def delunay_draw(polygon: list):
     visDelunay.remove_figure(D.pop())
     printTriangles(triangleToDetector, visDelunay, E, D)
 
-    return createListEdges(createSetEdgesToPrintAll(triangleToDetector)), visDelunay
+    triangleList = triangleToList(triangleToDetector)
+
+    return triangleList
 
 if __name__ == '__main__':
     pass

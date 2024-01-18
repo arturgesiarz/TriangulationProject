@@ -1408,8 +1408,15 @@ def printTriangles(polygon, triangleList, pointTab, save = False):
     vis.add_line_segment(solEdges, color="black")
 
     if save:
-        num_files = len(os.listdir(f"{os.getcwd()}/plots/Delone/"))
-        vis.save(f"{os.getcwd()}/plots/Delone/delone_{num_files + 1}")
+        initial_directory = os.getcwd()
+
+        os.chdir(os.path.dirname(os.getcwd()))
+        os.chdir(os.path.dirname(os.getcwd()))
+
+        num_files = len(os.listdir(f'{os.getcwd()}/plots/Delone'))
+        vis.save(f"{os.getcwd()}/plots/Delone/delone_{num_files}")
+
+        os.chdir(initial_directory)
 
     vis.show()
 
@@ -1448,7 +1455,7 @@ def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
     selectTriangle(triangleToDetector, edgesSet)
 
     triangleList = triangleToList(triangleToDetector)
-    printTriangles(polygon, triangleList, pointTab, save = True)
+    # printTriangles(polygon, triangleList, pointTab, save = True)
 
     return triangleList
 
