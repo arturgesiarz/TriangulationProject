@@ -10,9 +10,6 @@ __pycache__/
 
 .idea/
 
-gifs/
-plots/
-
 # Distribution / packaging
 .Python
 env/
