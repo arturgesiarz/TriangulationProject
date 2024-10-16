@@ -1461,9 +1461,7 @@ def delunay(polygon: list):  # O(n^2) ale czasami O(nlogn)
 
 
 if __name__ == '__main__':
-    # dla wersji rozszrzeonej testow
-    for test in Testy:
-        for polygon in test:
-            triangles = delunay(polygon)
-            print(triangles)
+    polygon = [(3.3366935483870965, 2.2781385281385282), (5.403225806451612, 2.2104978354978355), (7.328629032258064, 4.916125541125542), (6.935483870967742, 7.932900432900434), (3.3266129032258065, 7.878787878787879), (1.5120967741935485, 4.807900432900434), (1.502016129032258, 1.3446969696969697)]
+    triangles = delunay(polygon)
+    print(triangles)
 
